@@ -358,7 +358,7 @@ def train(
     run_dir.mkdir(exist_ok=True)
     
     # Load data
-    print("\n[1/5] Loading dataset...")
+    print("\n Loading dataset...")
     train_loader, val_loader, num_classes = create_dataloaders(
         data_dir, 
         batch_size=batch_size,
