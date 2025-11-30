@@ -69,6 +69,7 @@ class FaceDataset(Dataset):
 def get_transforms(is_training=True):
     """
     Mendefinisikan augmentasi untuk training dan validation/test
+    Input size: 512x512 untuk ArcFace model
     
     Args:
         is_training (bool): True untuk training transforms, False untuk val/test
@@ -78,18 +79,17 @@ def get_transforms(is_training=True):
     """
     if is_training:
         transform = transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.RandomCrop(224),
+            transforms.Resize((512, 512)),
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomRotation(degrees=10),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                               std=[0.229, 0.224, 0.225])
+                               std=[0.229, 0.224, 0.225]),
+            transforms.RandomErasing(p=0.2, scale=(0.02, 0.2), ratio=(0.3, 3.3), value='random')
         ])
     else:
         transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((512, 512)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                std=[0.229, 0.224, 0.225])
@@ -98,7 +98,7 @@ def get_transforms(is_training=True):
     return transform
 
 
-def create_dataloaders(data_dir, batch_size=8, num_workers=4, seed=42):
+def create_dataloaders(data_dir, batch_size=8, num_workers=0, seed=42):
     """
     Membuat DataLoader untuk train dan validation
     Split: 1 foto per kelas untuk validation, sisanya (3 foto) untuk training

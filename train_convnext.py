@@ -19,7 +19,7 @@ import seaborn as sns
 warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 from datareader import create_dataloaders
-from model import create_model
+from model_convnext import create_model
 
 
 def plot_metrics(history, save_dir):
@@ -237,21 +237,29 @@ def train_one_epoch(model, train_loader, criterion, optimizer, scaler, device, e
         
         optimizer.zero_grad()
         
-        # Mixed precision training
-        with autocast(device_type='cuda' if 'cuda' in str(device) else 'cpu'):
+        # Mixed precision training only if CUDA available
+        if scaler is not None:
+            with autocast(device_type='cuda'):
+                outputs = model(images)
+                loss = criterion(outputs, targets)
+            
+            # Backward pass dengan gradient scaling
+            scaler.scale(loss).backward()
+            
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
+            # Optimizer step
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            # Standard training without AMP
             outputs = model(images)
             loss = criterion(outputs, targets)
-        
-        # Backward pass dengan gradient scaling
-        scaler.scale(loss).backward()
-        
-        # Gradient clipping
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-        
-        # Optimizer step
-        scaler.step(optimizer)
-        scaler.update()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            optimizer.step()
         
         # Update metrics
         _, preds = torch.max(outputs, 1)
@@ -281,8 +289,12 @@ def validate(model, val_loader, criterion, device, desc='VAL', return_prediction
         images = images.to(device)
         targets = targets.to(device)
         
-        # Mixed precision inference
-        with autocast(device_type='cuda' if 'cuda' in str(device) else 'cpu'):
+        # Mixed precision inference only if CUDA available
+        if torch.cuda.is_available():
+            with autocast(device_type='cuda'):
+                outputs = model(images)
+                loss = criterion(outputs, targets)
+        else:
             outputs = model(images)
             loss = criterion(outputs, targets)
         
@@ -328,7 +340,7 @@ def train(
     save_dir='checkpoints'
 ):
     """
-    Main training function
+    Main training function untuk ConvNeXt-Tiny
     
     Args:
         data_dir (str): Path ke folder Train
@@ -342,46 +354,56 @@ def train(
     """
     # Setup
     if device is None:
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    # Verify CUDA availability
+    if torch.cuda.is_available():
+        print(f"CUDA Available: {torch.cuda.get_device_name(0)}")
+        print(f"CUDA Version: {torch.version.cuda}")
+    else:
+        print("WARNING: CUDA not available, using CPU")
     
     print("="*80)
-    print("SWIN-V2-S TRAINING")
+    print("ConvNeXt-TINY MODEL TRAINING")
     print("="*80)
     print(f"Device: {device} | Batch: {batch_size} | Epochs: {epochs} | LR: {learning_rate}")
+    print(f"Input Size: 512x512 | Embedding: 768 | Architecture: ConvNeXt-Tiny")
+    print(f"Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1")
     print("="*80)
     
     # Create save directory
     save_dir = Path(save_dir)
     save_dir.mkdir(exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = save_dir / f"swin_v2_s_{timestamp}"
+    run_dir = save_dir / f"convnext_tiny_{timestamp}"
     run_dir.mkdir(exist_ok=True)
     
     # Load data
-    print("\n Loading dataset...")
+    print("\nLoading dataset...")
     train_loader, val_loader, num_classes = create_dataloaders(
         data_dir, 
         batch_size=batch_size,
-        num_workers=4
+        num_workers=4  # Use 4 workers for faster data loading
     )
     
     # Create model
     print("\nMODEL ARCHITECTURE")
     print("-" * 90)
-    model = create_model(num_classes=num_classes, pretrained=True, device=device)
+    model = create_model(num_classes=num_classes, pretrained=True, dropout=0.3, device=device)
     
     total_params = model.get_num_total_params()
     trainable_params = model.get_num_trainable_params()
     non_trainable = total_params - trainable_params
     
-    print(f"  Architecture  : Swin Transformer V2 Small")
-    print(f"  Pretrained    : ImageNet-1K")
-    print(f"  Input size    : 224x224x3")
+    print(f"  Architecture  : ConvNeXt-Tiny")
+    print(f"  Pretrained    : ImageNet-1K V1")
+    print(f"  Input size    : 512x512x3")
+    print(f"  Embedding size: 128 (reduced from 768)")
     print(f"  Classes       : {num_classes}")
     print(f"  Total params  : {total_params:,} ({total_params/1e6:.2f}M)")
     print(f"  Trainable     : {trainable_params:,} ({trainable_params/1e6:.2f}M)")
     print(f"  Non-trainable : {non_trainable:,} ({non_trainable/1e6:.2f}M)")
-    print(f"  Device        : {device.upper()}")
+    print(f"  Device        : {str(device).upper()}")
     
     # Setup training components
     print("\nTRAINING CONFIGURATION")
@@ -392,21 +414,36 @@ def train(
         lr=learning_rate,
         weight_decay=weight_decay
     )
-    scheduler = CosineAnnealingWarmRestarts(
-        optimizer,
-        T_0=5,
-        T_mult=1,
-        eta_min=1e-6
-    )
-    scaler = GradScaler('cuda' if 'cuda' in str(device) else 'cpu')
-    early_stopping = EarlyStopping(patience=5, mode='max')
+    
+    # Warmup + Cosine scheduler
+    from torch.optim.lr_scheduler import LambdaLR
+    warmup_epochs = 5
+    
+    def lr_lambda(epoch):
+        if epoch < warmup_epochs:
+            return (epoch + 1) / warmup_epochs
+        else:
+            progress = (epoch - warmup_epochs) / (epochs - warmup_epochs)
+            return 0.5 * (1 + np.cos(np.pi * progress))
+    
+    scheduler = LambdaLR(optimizer, lr_lambda=lr_lambda)
+    
+    # Only use GradScaler if CUDA is available
+    if torch.cuda.is_available():
+        scaler = GradScaler()
+    else:
+        scaler = None
+        
+    early_stopping = EarlyStopping(patience=7, mode='max')
     
     print(f"  Optimizer     : AdamW (lr={learning_rate}, weight_decay={weight_decay})")
-    print(f"  Scheduler     : CosineAnnealingWarmRestarts (T_0=5, eta_min=1e-6)")
+    print(f"  Scheduler     : Cosine + Warmup ({warmup_epochs} epochs)")
     print(f"  Loss function : CrossEntropyLoss (label_smoothing=0.1)")
     print(f"  Batch size    : {batch_size}")
     print(f"  Epochs        : {epochs}")
-    print(f"  Mixed precision: Enabled (AMP)")
+    print(f"  Dropout       : 0.3")
+    print(f"  Augmentation  : ColorJitter + RandomErasing(p=0.2) + HFlip(p=0.5)")
+    print(f"  Mixed precision: {'Enabled (AMP)' if scaler is not None else 'Disabled (CPU)'}")
     print(f"  Grad clipping : max_norm=1.0")
     print(f"  Early stopping: patience={early_stopping.patience}")
     
@@ -442,7 +479,10 @@ def train(
         epoch_time = time.time() - epoch_start
         
         # Print metrics summary
-        print(f"Epoch {epoch}/{epochs} | Train Loss: {train_metrics['loss']:.4f} | Val Loss: {val_metrics['loss']:.4f} | Acc: {val_metrics['accuracy']*100:.2f}%")
+        print(f"Epoch {epoch}/{epochs} | Train Loss: {train_metrics['loss']:.4f} | "
+              f"Train Acc: {train_metrics['accuracy']*100:.2f}% | "
+              f"Val Loss: {val_metrics['loss']:.4f} | "
+              f"Val Acc: {val_metrics['accuracy']*100:.2f}%")
         
         # Save history
         history['train_loss'].append(train_metrics['loss'])
@@ -480,7 +520,7 @@ def train(
     total_time = time.time() - start_time
     
     # Load best model for final validation
-    checkpoint = torch.load(run_dir / f'best_epoch{best_epoch}.pth')
+    checkpoint = torch.load(run_dir / f'best_epoch{best_epoch}.pth', weights_only=False)
     model.load_state_dict(checkpoint['model_state_dict'])
     
     # Final evaluation with confusion matrix
@@ -509,6 +549,7 @@ def train(
     print(f"  Best epoch        : {best_epoch}/{epochs}")
     print(f"  Best val accuracy : {best_val_acc:.4f} ({best_val_acc*100:.2f}%)")
     print(f"  Best val F1 score : {history['val_f1'][best_epoch-1]:.4f}")
+    print(f"  Final train acc   : {history['train_acc'][-1]:.4f} ({history['train_acc'][-1]*100:.2f}%)")
     print(f"  Final train loss  : {history['train_loss'][-1]:.4f}")
     print(f"  Final val loss    : {history['val_loss'][-1]:.4f}")
     print(f"\n  Checkpoints saved : {run_dir}")
@@ -524,9 +565,9 @@ if __name__ == "__main__":
     CONFIG = {
         'data_dir': 'dataset/Train',
         'num_classes': 70,
-        'batch_size': 8,
+        'batch_size': 4,
         'epochs': 50,
-        'learning_rate': 1e-4,
+        'learning_rate': 3e-5,
         'weight_decay': 0.01,
         'save_dir': 'checkpoints'
     }
