@@ -17,8 +17,12 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 os.environ['GLOG_minloglevel'] = '3'
 warnings.filterwarnings('ignore')
 
-import absl.logging
-absl.logging.set_verbosity(absl.logging.ERROR)
+# Suppress absl logging if available (optional for mediapipe)
+try:
+    import absl.logging
+    absl.logging.set_verbosity(absl.logging.ERROR)
+except ImportError:
+    pass  # absl not installed, skip
 
 # Suppress stderr during import
 stderr_backup = sys.stderr
