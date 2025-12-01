@@ -1,0 +1,105 @@
+  tubes - Copy   main   maskrcnn310 3.10.18  python train_convnext.py 
+CUDA Available: NVIDIA GeForce RTX 3050 Laptop GPU
+CUDA Version: 11.8
+================================================================================
+ConvNeXt-TINY MODEL TRAINING
+================================================================================
+Device: cuda | Batch: 16 | Epochs: 50 | LR: 0.0005
+Input Size: 224x224 | Embedding: 768 | Architecture: ConvNeXt-Tiny
+Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1
+================================================================================
+
+Loading dataset...
+✓ Dataset loaded: 70 classes, 280 total images
+  Split: 210 train (75.0%), 70 val (25.0%)
+
+MODEL ARCHITECTURE
+------------------------------------------------------------------------------------------
+  Architecture  : ConvNeXt-Tiny
+  Pretrained    : ImageNet-1K V1
+  Input size    : 224x224x3
+  Embedding size: 768
+  Classes       : 70
+  Total params  : 27,873,958 (27.87M)
+  Trainable     : 27,873,958 (27.87M)
+  Non-trainable : 0 (0.00M)
+  Device        : CUDA
+
+TRAINING CONFIGURATION
+------------------------------------------------------------------------------------------
+  Optimizer     : AdamW (lr=0.0005, weight_decay=0.01)
+  Scheduler     : CosineAnnealingWarmRestarts (T_0=10, T_mult=2)
+  Epochs        : 50
+  Dropout       : 0.3
+  Augmentation  : ColorJitter + RandomErasing(p=0.2) + HFlip(p=0.5)
+  Mixed precision: Enabled (AMP)
+  Grad clipping : max_norm=1.0
+  Early stopping: patience=7
+
+==========================================================================================
+TRAINING START
+==========================================================================================
+Epoch 1 [TRAIN]:   0%|                                                                           | 0/14 [00:00<?, ?itEpoch 1 [TRAIN]:   0%|                                                  | 0/14 [00:31<?, ?it/s, loss=4.4835, acc=0.00Epoch 1 [TRAIN]:   7%|███                                       | 1/14 [00:31<06:44, 31.08s/it, loss=4.4835, acc=0.00Epoch 1 [TRAIN]:   7%|███                                       | 1/14 [00:31<06:44, 31.08s/it, loss=4.5370, acc=0.00Epoch 1 [TRAIN]:  14%|██████                                    | 2/14 [00:31<02:36, 13.01s/it, loss=4.5370, acc=0.00Epoch 1 [TRAIN]:  14%|██████                                    | 2/14 [00:31<02:36, 13.01s/it, loss=4.5002, acc=0.00Epoch 1 [TRAIN]:  21%|█████████                                 | 3/14 [00:31<01:18,  7.12s/it, loss=4.5002, acc=0.00Epoch 1 [TRAIN]:  21%|█████████                                 | 3/14 [00:31<01:18,  7.12s/it, loss=4.4283, acc=0.01Epoch 1 [TRAIN]:  29%|████████████                              | 4/14 [00:31<00:43,  4.36s/it, loss=4.4283, acc=0.01Epoch 1 [TRAIN]:  29%|████████████                              | 4/14 [00:31<00:43,  4.36s/it, loss=4.4779, acc=0.01Epoch 1 [TRAIN]:  36%|███████████████                           | 5/14 [00:31<00:25,  2.83s/it, loss=4.4779, acc=0.01Epoch 1 [TRAIN]:  36%|███████████████                           | 5/14 [00:31<00:25,  2.83s/it, loss=4.4915, acc=0.01Epoch 1 [TRAIN]:  43%|██████████████████                        | 6/14 [00:31<00:15,  1.91s/it, loss=4.4915, acc=0.01Epoch 1 [TRAIN]:  43%|██████████████████                        | 6/14 [00:32<00:15,  1.91s/it, loss=4.5217, acc=0.00Epoch 1 [TRAIN]:  50%|█████████████████████                     | 7/14 [00:32<00:09,  1.32s/it, loss=4.5217, acc=0.00Epoch 1 [TRAIN]:  50%|█████████████████████                     | 7/14 [00:32<00:09,  1.32s/it, loss=4.5054, acc=0.00Epoch 1 [TRAIN]:  57%|████████████████████████                 Epoch 1 [TRAIN]:  64%|███████████████████████████               | 9/14 [00:32<00:03,  1.35it/s, loss=4.5066, acc=0.00Epoch 1 [TRAIN]:  64%|███████████████████████████               | 9/14 [00:32<00:03,  1.35it/s, loss=4.5139, acc=0.01Epoch 1 [TRAIN]:  71%|█████████████████████████████▎           | 10/14 [00:32<00:02,  1.66it/s, loss=4.5139, acc=0.01Epoch 1 [TRAIN]:  71%|█████████████████████████████▎           | 10/14 [00:33<00:02,  1.66it/s, loss=4.5191, acc=0.01Epoch 1 [TRAIN]:  79%|████████████████████████████████▏        | 11/14 [00:33<00:01,  1.97it/s, loss=4.5191, acc=0.01Epoch 1 [TRAIN]:  79%|████████████████████████████████▏        | 11/14 [00:33<00:01,  1.97it/s, loss=4.4961, acc=0.01Epoch 1 [TRAIN]:  86%|███████████████████████████████████▏     | 12/14 [00:33<00:00,  2.25it/s, loss=4.4961, acc=0.01Epoch 1 [TRAIN]:  86%|███████████████████████████████████▏     | 12/14 [00:33<00:00,  2.25it/s, loss=4.5068, acc=0.00Epoch 1 [TRAIN]:  93%|██████████████████████████████████████   | 13/14 [00:33<00:00,  2.83it/s, loss=4.5068, acc=0.00Epoch 1 [TRAIN]:  93%|██████████████████████████████████████   | 13/14 [00:33<00:00,  2.83it/s, loss=4.5060, acc=0.00Epoch 1 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:34<00:00,  2.49s/it, loss=4.5060, acc=0.0095]
+Epoch 1/50 | Train Loss: 4.5060 | Train Acc: 0.95% | Val Loss: 4.1927 | Val Acc: 4.29%
+✓ Best model saved: best_epoch1.pth (Acc: 4.29%)
+Epoch 2 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:27<00:00,  1.96s/it, loss=3.9762, acc=0.1190]
+Epoch 2/50 | Train Loss: 3.9762 | Train Acc: 11.90% | Val Loss: 3.3853 | Val Acc: 27.14%
+✓ Best model saved: best_epoch2.pth (Acc: 27.14%)
+Epoch 3 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:27<00:00,  1.93s/it, loss=2.7682, acc=0.5000]
+Epoch 3/50 | Train Loss: 2.7682 | Train Acc: 50.00% | Val Loss: 2.5875 | Val Acc: 50.00%
+✓ Best model saved: best_epoch3.pth (Acc: 50.00%)
+Epoch 4 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:27<00:00,  1.95s/it, loss=1.6279, acc=0.8810]
+Epoch 4/50 | Train Loss: 1.6279 | Train Acc: 88.10% | Val Loss: 1.9952 | Val Acc: 67.14%
+✓ Best model saved: best_epoch4.pth (Acc: 67.14%)
+Epoch 5 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:27<00:00,  1.95s/it, loss=0.9818, acc=0.9952]
+Epoch 5/50 | Train Loss: 0.9818 | Train Acc: 99.52% | Val Loss: 1.9349 | Val Acc: 68.57%
+✓ Best model saved: best_epoch5.pth (Acc: 68.57%)
+Epoch 6 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:27<00:00,  1.95s/it, loss=0.8846, acc=0.9905]
+Epoch 6/50 | Train Loss: 0.8846 | Train Acc: 99.05% | Val Loss: 1.9453 | Val Acc: 62.86%
+Epoch 7 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:29<00:00,  2.09s/it, loss=0.8573, acc=0.9952]
+Epoch 7/50 | Train Loss: 0.8573 | Train Acc: 99.52% | Val Loss: 1.9425 | Val Acc: 70.00%
+✓ Best model saved: best_epoch7.pth (Acc: 70.00%)
+Epoch 8 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:31<00:00,  2.28s/it, loss=0.8309, acc=0.9952]
+Epoch 8/50 | Train Loss: 0.8309 | Train Acc: 99.52% | Val Loss: 1.8604 | Val Acc: 70.00%
+Epoch 9 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:29<00:00,  2.08s/it, loss=0.8179, acc=1.0000]
+Epoch 9/50 | Train Loss: 0.8179 | Train Acc: 100.00% | Val Loss: 1.8783 | Val Acc: 70.00%
+Epoch 10 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:29<00:00,  2.12s/it, loss=0.8186, acc=1.0000]
+Epoch 10/50 | Train Loss: 0.8186 | Train Acc: 100.00% | Val Loss: 1.8712 | Val Acc: 70.00%
+Epoch 11 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:28<00:00,  2.04s/it, loss=0.8559, acc=1.0000]
+Epoch 11/50 | Train Loss: 0.8559 | Train Acc: 100.00% | Val Loss: 1.9676 | Val Acc: 65.71%
+Epoch 12 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:27<00:00,  1.98s/it, loss=0.8945, acc=1.0000]
+Epoch 12/50 | Train Loss: 0.8945 | Train Acc: 100.00% | Val Loss: 1.9801 | Val Acc: 62.86%
+Epoch 13 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:29<00:00,  2.08s/it, loss=0.8534, acc=1.0000]
+Epoch 13/50 | Train Loss: 0.8534 | Train Acc: 100.00% | Val Loss: 2.0367 | Val Acc: 67.14%
+Epoch 14 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:28<00:00,  2.03s/it, loss=0.8739, acc=0.9952]
+Epoch 14/50 | Train Loss: 0.8739 | Train Acc: 99.52% | Val Loss: 1.9949 | Val Acc: 64.29%
+
+Early stopping triggered at epoch 14
+No improvement for 7 epochs
+
+Generating confusion matrix...
+
+Generating metric visualizations...
+
+  Visualizations saved to checkpoints\convnext_tiny_20251201_144518
+    - loss.png
+    - accuracy.png
+    - f1_score.png
+    - precision_recall.png
+    - confusion_matrix.png
+    - confusion_matrix_counts.png
+
+==========================================================================================
+TRAINING COMPLETED
+  Best epoch        : 7/50
+  Best val accuracy : 0.7000 (70.00%)
+  Best val F1 score : 0.6367
+  Final train acc   : 0.9952 (99.52%)
+  Final train loss  : 0.8739
+  Final val loss    : 1.9949
+
+  Checkpoints saved : checkpoints\convnext_tiny_20251201_144518
+    - best_epoch7.pth
+    - history_train.json
+==========================================================================================
+  tubes - Copy   main   maskrcnn310 3.10.18    

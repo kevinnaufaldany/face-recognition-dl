@@ -15,8 +15,8 @@ plt.rcParams['figure.figsize'] = (16, 10)
 plt.rcParams['font.size'] = 11
 
 # Load training histories
-convnext_dir = Path('checkpoints/convnext_tiny_20251201_070631')
-swin_dir = Path('checkpoints/swin_v2_tiny_20251201_084752')
+convnext_dir = Path('checkpoints\convnext_tiny_20251201_144518')
+swin_dir = Path('checkpoints\swin_v2_tiny_20251201_150017')
 
 with open(convnext_dir / 'history_train.json', 'r') as f:
     convnext_history = json.load(f)

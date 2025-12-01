@@ -1,0 +1,122 @@
+  tubes - Copy   main   maskrcnn310 3.10.18  python train_swin.py    
+CUDA Available: NVIDIA GeForce RTX 3050 Laptop GPU
+CUDA Version: 11.8
+================================================================================
+Swin V2 Tiny MODEL TRAINING
+================================================================================
+Device: cuda | Batch: 16 | Epochs: 50 | LR: 0.0005
+Input Size: 224x224 | Embedding: 768 | Architecture: Swin V2 Tiny
+Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1
+================================================================================
+
+Loading dataset...
+✓ Dataset loaded: 70 classes, 280 total images
+  Split: 210 train (75.0%), 70 val (25.0%)
+
+MODEL ARCHITECTURE
+------------------------------------------------------------------------------------------
+✓ Loaded Swin V2 Tiny with IMAGENET1K_V1 pretrained weights
+  Architecture  : Swin Transformer V2 Tiny
+  Pretrained    : IMAGENET1K_V1
+  Input size    : 224x224x3
+  Embedding size: 768
+  Classes       : 70
+  Total params  : 27,637,936 (27.64M)
+  Trainable     : 27,637,936 (27.64M)
+  Non-trainable : 0 (0.00M)
+  Device        : CUDA
+
+TRAINING CONFIGURATION
+------------------------------------------------------------------------------------------
+  Optimizer     : AdamW (lr=0.0005, weight_decay=0.01)
+  Scheduler     : CosineAnnealingWarmRestarts (T_0=10, T_mult=2)
+  Loss function : CrossEntropyLoss (label_smoothing=0.1)
+  Batch size    : 16
+  Epochs        : 50
+  Dropout       : 0.3
+  Augmentation  : ColorJitter + RandomErasing(p=0.2) + HFlip(p=0.5)
+  Mixed precision: Enabled (AMP)
+  Grad clipping : max_norm=1.0
+  Early stopping: patience=7
+
+==========================================================================================
+TRAINING START
+==========================================================================================
+Epoch 1 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:29<00:00,  2.11s/it, loss=4.5033, acc=0.0095]
+Epoch 1/50 | Train Loss: 4.5033 | Train Acc: 0.95% | Val Loss: 4.4068 | Val Acc: 0.00%
+Epoch 2 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:57<00:00,  4.08s/it, loss=4.4845, acc=0.0095]
+Epoch 2/50 | Train Loss: 4.4845 | Train Acc: 0.95% | Val Loss: 4.4068 | Val Acc: 0.00%
+Epoch 3 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:46<00:00,  3.31s/it, loss=4.6749, acc=0.0048]
+Epoch 3/50 | Train Loss: 4.6749 | Train Acc: 0.48% | Val Loss: 3.9819 | Val Acc: 15.71%
+✓ Best model saved: best_epoch3.pth (Acc: 15.71%)
+Epoch 4 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:34<00:00,  2.47s/it, loss=3.9571, acc=0.0905]
+Epoch 4/50 | Train Loss: 3.9571 | Train Acc: 9.05% | Val Loss: 3.6672 | Val Acc: 20.00%
+✓ Best model saved: best_epoch4.pth (Acc: 20.00%)
+Epoch 5 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:31<00:00,  2.27s/it, loss=3.6033, acc=0.2571]
+Epoch 5/50 | Train Loss: 3.6033 | Train Acc: 25.71% | Val Loss: 3.4795 | Val Acc: 41.43%
+✓ Best model saved: best_epoch5.pth (Acc: 41.43%)
+Epoch 6 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [01:01<00:00,  4.40s/it, loss=3.3674, acc=0.3333]
+Epoch 6/50 | Train Loss: 3.3674 | Train Acc: 33.33% | Val Loss: 3.3668 | Val Acc: 41.43%
+Epoch 7 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:34<00:00,  2.47s/it, loss=3.2227, acc=0.3952]
+Epoch 7/50 | Train Loss: 3.2227 | Train Acc: 39.52% | Val Loss: 3.3153 | Val Acc: 42.86%
+✓ Best model saved: best_epoch7.pth (Acc: 42.86%)
+Epoch 8 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:30<00:00,  2.21s/it, loss=3.2117, acc=0.4143]
+Epoch 8/50 | Train Loss: 3.2117 | Train Acc: 41.43% | Val Loss: 3.2764 | Val Acc: 40.00%
+Epoch 9 [TRAIN]: 100%|█████████████████████████████████████████| 14/14 [00:38<00:00,  2.76s/it, loss=3.0806, acc=0.4857]
+Epoch 9/50 | Train Loss: 3.0806 | Train Acc: 48.57% | Val Loss: 3.2545 | Val Acc: 35.71%
+Epoch 10 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:31<00:00,  2.22s/it, loss=3.2009, acc=0.4238]
+Epoch 10/50 | Train Loss: 3.2009 | Train Acc: 42.38% | Val Loss: 3.2475 | Val Acc: 37.14%
+Epoch 11 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:38<00:00,  2.73s/it, loss=3.1066, acc=0.4190]
+Epoch 11/50 | Train Loss: 3.1066 | Train Acc: 41.90% | Val Loss: 3.1386 | Val Acc: 35.71%
+Epoch 12 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:31<00:00,  2.22s/it, loss=2.9680, acc=0.4190]
+Epoch 12/50 | Train Loss: 2.9680 | Train Acc: 41.90% | Val Loss: 2.9953 | Val Acc: 44.29%
+✓ Best model saved: best_epoch12.pth (Acc: 44.29%)
+Epoch 13 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.19s/it, loss=2.7475, acc=0.5476]
+Epoch 13/50 | Train Loss: 2.7475 | Train Acc: 54.76% | Val Loss: 2.8578 | Val Acc: 55.71%
+✓ Best model saved: best_epoch13.pth (Acc: 55.71%)
+Epoch 14 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.21s/it, loss=2.5872, acc=0.5905]
+Epoch 14/50 | Train Loss: 2.5872 | Train Acc: 59.05% | Val Loss: 2.8170 | Val Acc: 47.14%
+Epoch 15 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.18s/it, loss=2.5029, acc=0.5762]
+Epoch 15/50 | Train Loss: 2.5029 | Train Acc: 57.62% | Val Loss: 2.7940 | Val Acc: 47.14%
+Epoch 16 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.19s/it, loss=2.5559, acc=0.5619]
+Epoch 16/50 | Train Loss: 2.5559 | Train Acc: 56.19% | Val Loss: 2.7292 | Val Acc: 45.71%
+Epoch 17 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:31<00:00,  2.27s/it, loss=2.4534, acc=0.5476]
+Epoch 17/50 | Train Loss: 2.4534 | Train Acc: 54.76% | Val Loss: 2.6974 | Val Acc: 51.43%
+Epoch 18 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.21s/it, loss=2.3929, acc=0.5381]
+Epoch 18/50 | Train Loss: 2.3929 | Train Acc: 53.81% | Val Loss: 2.7745 | Val Acc: 47.14%
+Epoch 19 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.19s/it, loss=2.4904, acc=0.5857]
+Epoch 19/50 | Train Loss: 2.4904 | Train Acc: 58.57% | Val Loss: 2.6985 | Val Acc: 48.57%
+Epoch 20 [TRAIN]: 100%|████████████████████████████████████████| 14/14 [00:30<00:00,  2.19s/it, loss=2.3855, acc=0.6524]
+Epoch 20/50 | Train Loss: 2.3855 | Train Acc: 65.24% | Val Loss: 2.6657 | Val Acc: 48.57%
+
+Early stopping triggered at epoch 20
+No improvement for 7 epochs
+
+Generating confusion matrix...
+
+Generating metric visualizations...
+
+  Visualizations saved to checkpoints\swin_v2_tiny_20251201_150017
+    - loss.png
+    - accuracy.png
+    - f1_score.png
+    - precision_recall.png
+    - confusion_matrix.png
+    - confusion_matrix_counts.png
+
+==========================================================================================
+TRAINING COMPLETED
+==========================================================================================
+  Total time        : 23.1 minutes (0.38 hours)
+  Best epoch        : 13/50
+  Best val accuracy : 0.5571 (55.71%)
+  Best val F1 score : 0.4714
+  Final train acc   : 0.6524 (65.24%)
+  Final train loss  : 2.3855
+  Final val loss    : 2.6657
+
+  Checkpoints saved : checkpoints\swin_v2_tiny_20251201_150017
+    - best_epoch13.pth
+    - history_train.json
+==========================================================================================
+  tubes - Copy   main   maskrcnn310 3.10.18  

@@ -367,7 +367,7 @@ def train(
     print("Swin V2 Tiny MODEL TRAINING")
     print("="*80)
     print(f"Device: {device} | Batch: {batch_size} | Epochs: {epochs} | LR: {learning_rate}")
-    print(f"Input Size: 512x512 | Embedding: 768 | Architecture: Swin V2 Tiny")
+    print(f"Input Size: 224x224 | Embedding: 768 | Architecture: Swin V2 Tiny")
     print(f"Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1")
     print("="*80)
     
@@ -382,7 +382,7 @@ def train(
     print("\nLoading dataset...")
     train_loader, val_loader, num_classes, class_names = create_dataloaders(
         data_dir,
-        img_size=512,
+        img_size=224,
         batch_size=batch_size,
         num_workers=4  # Use 4 workers for faster data loading
     )

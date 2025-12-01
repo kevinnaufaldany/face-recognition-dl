@@ -367,7 +367,7 @@ def train(
     print("ConvNeXt-TINY MODEL TRAINING")
     print("="*80)
     print(f"Device: {device} | Batch: {batch_size} | Epochs: {epochs} | LR: {learning_rate}")
-    print(f"Input Size: 512x512 | Embedding: 768 | Architecture: ConvNeXt-Tiny")
+    print(f"Input Size: 224x224 | Embedding: 768 | Architecture: ConvNeXt-Tiny")
     print(f"Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1")
     print("="*80)
     
@@ -382,7 +382,7 @@ def train(
     print("\nLoading dataset...")
     train_loader, val_loader, num_classes, class_names = create_dataloaders(
         data_dir,
-        img_size=512,
+        img_size=224,
         batch_size=batch_size,
         num_workers=4  # Use 4 workers for faster data loading
     )
@@ -398,7 +398,7 @@ def train(
     
     print(f"  Architecture  : ConvNeXt-Tiny")
     print(f"  Pretrained    : ImageNet-1K V1")
-    print(f"  Input size    : 512x512x3")
+    print(f"  Input size    : 224x224x3")
     print(f"  Embedding size: 768")
     print(f"  Classes       : {num_classes}")
     print(f"  Total params  : {total_params:,} ({total_params/1e6:.2f}M)")

@@ -6,11 +6,13 @@
 
 - [Overview](#overview)
 - [Dataset](#dataset)
+- [Preprocessing Pipeline](#preprocessing-pipeline)
 - [Model Architectures](#model-architectures)
 - [Training Configuration](#training-configuration)
 - [Results & Comparison](#results--comparison)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Application Demo](#application-demo)
 - [Project Structure](#project-structure)
 - [Requirements](#requirements) ---
 
@@ -32,6 +34,62 @@
   - **Distribution**: ~4 gambar per kelas
   - **Split Ratio**: 75% training (210 images) / 25% validation (70 images)
   - **Image Format**: JPG, JPEG, PNG, WEBP
+
+  ***
+
+  ## 🔄 Preprocessing Pipeline
+
+  ### MediaPipe Face Detection & Cropping
+
+  Sebelum training atau inference, setiap gambar harus diproses menggunakan MediaPipe untuk deteksi wajah dan cropping otomatis.
+
+  **File Utama**:
+  - `preprocess_dataset.py` - Script preprocessing untuk dataset training
+  - `utils/face_crop.py` - Core face detection & cropping module
+
+  **Fitur**:
+  - ✅ **Deteksi Multi-Strategy**: Menggunakan 2 model MediaPipe (full-range & short-range)
+  - ✅ **Automatic Padding**: 20% padding otomatis di sekitar wajah
+  - ✅ **Resize Konsisten**: Semua gambar di-resize menjadi 224×224
+  - ✅ **Fallback Handling**: Center crop jika deteksi wajah gagal
+  - ✅ **Format Support**: JPG, JPEG, PNG, BMP, WEBP
+
+  ### Preprocessing untuk Dataset Training
+
+  ```bash
+  # Jalankan sebelum training (hanya perlu sekali)
+  python preprocess_dataset.py
+  ```
+
+  **Output**:
+  - `dataset/Train_Cropped/` - Dataset hasil preprocessing
+  - Setiap subfolder berisi gambar wajah yang sudah di-crop dan resize
+
+  **Konfigurasi** (di `preprocess_dataset.py`):
+  ```python
+  INPUT_DIR = "dataset/Train"           # Raw images
+  OUTPUT_DIR = "dataset/Train_Cropped"  # Preprocessed output
+  PADDING_PERCENT = 20                  # Padding around face
+  TARGET_SIZE = 224                     # Output resolution
+  ```
+
+  ### Face Cropping Pipeline (dalam `utils/face_crop.py`)
+
+  ```
+  Input Image
+       ↓
+  MediaPipe Face Detection (Model 1: Full-range)
+       ↓ (if detection fails)
+  MediaPipe Face Detection (Model 2: Short-range)
+       ↓ (if both fail)
+  Center Crop Fallback
+       ↓
+  Apply Padding (20%)
+       ↓
+  Resize to 224×224
+       ↓
+  Output: Normalized Face Image
+  ```
 
   ***
 
@@ -345,6 +403,108 @@
   python check.py
   ```
 
+  ### 4. Run Web Interface (Streamlit Demo)
+
+  Aplikasi Streamlit dengan preprocessing otomatis:
+
+  ```bash
+  streamlit run app.py
+  ```
+
+  ***
+
+  ## 🎬 Application Demo
+
+  ### Streamlit Web Interface
+
+  Aplikasi interaktif untuk face recognition dengan preprocessing otomatis.
+
+  **Fitur**:
+  - ✅ Upload gambar wajah (JPG, PNG, JPEG)
+  - ✅ **Otomatis Preprocessing**: Deteksi wajah & cropping menggunakan MediaPipe
+  - ✅ **Prediksi Real-time**: Klasifikasi menggunakan model ConvNeXt-Tiny
+  - ✅ **Confidence Score**: Menampilkan tingkat kepercayaan prediksi
+  - ✅ **Top-5 Candidates**: Menampilkan 5 prediksi terbaik
+
+  ### Workflow Aplikasi
+
+  ```
+  1. User Upload Gambar
+       ↓
+  2. Preview Gambar Original
+       ↓
+  3. MediaPipe Face Detection
+       ↓
+  4. Automatic Face Cropping (224×224)
+       ↓
+  5. Image Normalization (ImageNet stats)
+       ↓
+  6. Model Inference (ConvNeXt-Tiny)
+       ↓
+  7. Predict & Display Results
+       ↓
+  Output:
+    • Predicted Name + Confidence
+    • Top-5 Predictions
+    • Processing Details
+  ```
+
+  ### Cara Menggunakan
+
+  ```bash
+  # 1. Start Streamlit app
+  streamlit run app.py
+
+  # 2. Aplikasi terbuka di browser (http://localhost:8501)
+
+  # 3. Upload foto wajah
+  #    - Format: JPG, JPEG, PNG
+  #    - Pastikan wajah terlihat jelas
+  #    - Cukup 1 orang per gambar
+
+  # 4. Klik "Prediksi Nama Mahasiswa"
+
+  # 5. Lihat hasil prediksi
+  #    - Nama yang diprediksi
+  #    - Confidence percentage
+  #    - Top-5 prediksi lainnya
+  ```
+
+  ### Preprocessing dalam Aplikasi
+
+  Setiap gambar yang diupload otomatis diproses:
+
+  ```python
+  # Pipeline dalam app.py:
+  from utils.face_crop import FaceCropper
+
+  # 1. Deteksi wajah
+  cropper = FaceCropper(padding_percent=20, target_size=(224, 224))
+  face_img, detected = cropper.detect_and_crop_face(uploaded_image)
+
+  # 2. Jika wajah terdeteksi
+  if detected:
+      # 3. Normalisasi & prediksi
+      prediction = model(preprocess(face_img))
+  else:
+      # 4. Fallback jika wajah tidak terdeteksi
+      face_img = center_crop_image(image)
+  ```
+
+  ### Tips untuk Hasil Terbaik
+
+  ✅ **DO**:
+  - Ambil foto wajah dengan pencahayaan yang cukup
+  - Posisikan wajah langsung menghadap kamera
+  - Pastikan hanya 1 orang di foto
+  - Gunakan foto close-up/medium shot
+
+  ❌ **DON'T**:
+  - Gunakan foto terlalu jauh
+  - Ambil foto dengan pencahayaan gelap
+  - Gunakan foto yang blur atau noise
+  - Multiple faces dalam satu foto
+
   ***
 
   ## 📁 Project Structure
@@ -367,7 +527,7 @@
   │       └── *.png
   │
   ├── utils/
-  │   └── face_crop.py              # MediaPipe face detection (reference)
+  │   └── face_crop.py              # MediaPipe face detection & cropping
   │
   ├── model_convnext.py             # ConvNeXt-Tiny model
   ├── model_swin.py                 # Swin V2 Tiny model
@@ -378,6 +538,11 @@
   ├── datareader.py                 # Dataset loader & augmentation
   ├── check.py                      # Model evaluation
   ├── generate_comparison.py        # Generate comparison plots
+  ├── preprocess_dataset.py         # Dataset preprocessing (MediaPipe)
+  │
+  ├── app.py                        # Streamlit web interface
+  ├── extract_class_names.py        # Extract class names from dataset
+  ├── class_names.txt               # 70 class names (one per line)
   │
   ├── requirements.txt              # Python dependencies
   └── README.md                     # This file
