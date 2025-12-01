@@ -8,21 +8,37 @@ from pathlib import Path
 import numpy as np
 import sys
 import os
+import logging
 
-# Suppress warnings
+# Suppress all warnings and logs
 import warnings
 warnings.filterwarnings('ignore')
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-# Import model dan preprocessing
-from model_convnext import create_model
-from utils.face_crop import FaceCropper
+# Suppress TensorFlow/MediaPipe logging
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+# Suppress protobuf warnings
+logging.getLogger('absl').setLevel(logging.ERROR)
+logging.getLogger('tensorflow').setLevel(logging.ERROR)
+
+# Suppress stderr during import
+stderr_backup = sys.stderr
+sys.stderr = open(os.devnull, 'w')
+
+try:
+    # Import model dan preprocessing (suppress MediaPipe warnings)
+    from model_convnext import create_model
+    from utils.face_crop import FaceCropper
+finally:
+    sys.stderr.close()
+    sys.stderr = stderr_backup
 
 # ===================== #
 # 1. CONFIG DASAR
 # ===================== #
 
-CHECKPOINT_PATH = r"checkpoints/convnext_tiny_20251201_070631/best_epoch7.pth"
+CHECKPOINT_PATH = r"checkpoints/convnext_tiny_20251201_144518/best_epoch7.pth"
 CLASS_NAMES_PATH = "class_names.txt"
 IMAGE_SIZE = 224  # Model dilatih dengan input 224x224
 NUM_CLASSES = 70  # sesuaikan dengan jumlah kelas kamu
@@ -33,8 +49,22 @@ NUM_CLASSES = 70  # sesuaikan dengan jumlah kelas kamu
 
 @st.cache_resource
 def load_face_cropper():
-    """Load face cropper untuk preprocessing"""
-    return FaceCropper(padding_percent=20, target_size=(IMAGE_SIZE, IMAGE_SIZE))
+    """Load face cropper untuk preprocessing dengan error handling"""
+    try:
+        # Suppress stderr during cropper initialization
+        stderr_backup = sys.stderr
+        sys.stderr = open(os.devnull, 'w')
+        
+        try:
+            cropper = FaceCropper(padding_percent=20, target_size=(IMAGE_SIZE, IMAGE_SIZE))
+            return cropper
+        finally:
+            sys.stderr.close()
+            sys.stderr = stderr_backup
+    except Exception as e:
+        # Return None jika preprocessing tidak bisa diload
+        # App akan fallback ke image original
+        return None
 
 @st.cache_data
 def load_class_names(path: str):
@@ -99,21 +129,33 @@ def predict_image(image: Image.Image, model, class_names, cropper=None):
     
     # Step 1: Preprocess gambar (deteksi & crop wajah)
     if cropper is not None:
-        # Convert PIL to numpy untuk cropper
-        img_array = np.array(image)
-        
-        # Deteksi dan crop wajah
-        cropped_face, face_detected = cropper.detect_and_crop_face(image)
-        
-        if face_detected and cropped_face is not None:
-            # Wajah berhasil dideteksi
-            image = Image.fromarray(cropped_face)
-            preprocessing_info['face_detected'] = True
-            preprocessing_info['method'] = 'MediaPipe Detection'
-        else:
-            # Fallback: gunakan gambar original
+        try:
+            # Convert PIL to numpy untuk cropper
+            img_array = np.array(image)
+            
+            # Deteksi dan crop wajah dengan stderr suppression
+            stderr_backup = sys.stderr
+            sys.stderr = open(os.devnull, 'w')
+            
+            try:
+                cropped_face, face_detected = cropper.detect_and_crop_face(image)
+            finally:
+                sys.stderr.close()
+                sys.stderr = stderr_backup
+            
+            if face_detected and cropped_face is not None:
+                # Wajah berhasil dideteksi
+                image = Image.fromarray(cropped_face)
+                preprocessing_info['face_detected'] = True
+                preprocessing_info['method'] = 'MediaPipe Detection'
+            else:
+                # Fallback: gunakan gambar original
+                preprocessing_info['face_detected'] = False
+                preprocessing_info['method'] = 'No Detection (Original Image)'
+        except Exception as e:
+            # Jika ada error saat preprocessing, gunakan gambar original
             preprocessing_info['face_detected'] = False
-            preprocessing_info['method'] = 'No Detection (Original Image)'
+            preprocessing_info['method'] = f'Error: {str(e)[:50]}'
     
     # Step 2: Transform ke tensor
     transform = get_transform()
@@ -155,8 +197,12 @@ except Exception as e:
 
 try:
     face_cropper = load_face_cropper()
+    if face_cropper is None:
+        preprocessing_available = False
+    else:
+        preprocessing_available = True
 except Exception as e:
-    st.warning(f"Preprocessing tidak tersedia: {e}")
+    preprocessing_available = False
     face_cropper = None
 
 try:
@@ -175,18 +221,27 @@ st.caption("Upload foto wajah, sistem akan otomatis deteksi wajah dan melakukan 
 with st.sidebar:
     st.subheader("ℹ️ Informasi Model")
     st.write("- **Model**: ConvNeXt-Tiny")
-    st.write(f"- **Akurasi**: 64.29%")
+    st.write(f"- **Akurasi**: 70.00%")
     st.write(f"- **Jumlah Kelas**: {NUM_CLASSES} mahasiswa")
     st.write("- **Format Gambar**: JPG, JPEG, PNG")
     st.markdown("---")
     st.subheader("📋 Pipeline")
-    st.write("""
-    1️⃣ Upload gambar wajah
-    2️⃣ Deteksi wajah (MediaPipe)
-    3️⃣ Crop & Normalize
-    4️⃣ Prediksi dengan model
-    5️⃣ Tampilkan hasil
-    """)
+    if preprocessing_available:
+        st.write("""
+        1️⃣ Upload gambar wajah
+        2️⃣ Deteksi wajah (MediaPipe)
+        3️⃣ Crop & Normalize
+        4️⃣ Prediksi dengan model
+        5️⃣ Tampilkan hasil
+        """)
+    else:
+        st.write("""
+        1️⃣ Upload gambar wajah
+        2️⃣ Normalisasi gambar
+        3️⃣ Prediksi dengan model
+        4️⃣ Tampilkan hasil
+        """)
+        st.info("⚠️ MediaPipe preprocessing tidak tersedia - menggunakan mode fallback")
     st.markdown("---")
     st.write("**Tips**: Pastikan wajah jelas, terang, dan 1 orang per foto.")
 
