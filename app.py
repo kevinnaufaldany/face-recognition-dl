@@ -26,7 +26,8 @@ sys.stderr = open(os.devnull, 'w')
 
 try:
     from model_convnext import create_model
-    from utils.face_crop import FaceCropper
+    from utils.haar_cropper import HaarFaceCropper
+
 finally:
     sys.stderr.close()
     sys.stderr = stderr_backup
@@ -46,19 +47,11 @@ NUM_CLASSES = 70
 
 @st.cache_resource
 def load_face_cropper():
-    """Load face cropper dengan suppression"""
-    try:
-        stderr_backup = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
-        
-        try:
-            cropper = FaceCropper(padding_percent=20, target_size=(IMAGE_SIZE, IMAGE_SIZE))
-            return cropper
-        finally:
-            sys.stderr.close()
-            sys.stderr = stderr_backup
-    except:
-        return None
+    return HaarFaceCropper(
+        padding_percent=20,
+        target_size=(IMAGE_SIZE, IMAGE_SIZE)
+    )
+
 
 @st.cache_data
 def load_class_names(path: str):
@@ -100,45 +93,40 @@ def get_transform():
 
 def preprocess_image(image_pil, cropper):
     """
-    Pipeline preprocessing seperti preprocess_dataset.py
-    1. Convert PIL ke OpenCV
-    2. Deteksi & crop wajah dengan MediaPipe
+    Pipeline preprocessing dengan Haar Cascade
+    1. Terima PIL Image (RGB)
+    2. Deteksi & crop wajah
     3. Resize ke 224x224
     
     Returns:
         image_processed (PIL Image), success (bool), face_detected (bool)
     """
     try:
-        # Step 1: Gunakan FaceCropper untuk deteksi dan crop
-        if cropper is not None:
-            # Suppress stderr saat cropping tapi capture print statements
-            print("[APP] Starting face detection...")
-            stderr_backup = sys.stderr
-            sys.stderr = open(os.devnull, 'w')
-            
-            try:
-                # Panggil method yang tepat
-                face_cropped, success = cropper.detect_and_crop_face_from_pil(image_pil)
-                print(f"[APP] Detection result: success={success}")
-            finally:
-                sys.stderr.close()
-                sys.stderr = stderr_backup
-            
-            if success and face_cropped is not None:
-                # Wajah terdeteksi dan di-crop
-                # face_cropped sudah dalam format numpy BGR 224x224
-                # Convert ke PIL untuk consistency
-                print("[APP] Face detected! Converting to PIL...")
-                image_rgb = cv2.cvtColor(face_cropped, cv2.COLOR_BGR2RGB)
-                image_processed = Image.fromarray(image_rgb)
-                return image_processed, True, True  # ← FACE DETECTED!
+        if cropper is None:
+            # Fallback: resize langsung
+            image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
+            return image_resized, True, False
+
+        print("[APP] Starting face detection with Haar Cascade...")
         
-        # Fallback: Jika cropper tidak tersedia atau gagal deteksi
-        # Resize langsung ke 224x224
-        print("[APP] No face detected, using fallback resize...")
-        image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
-        return image_resized, True, False  # ← NO FACE DETECTED
-            
+        # Gunakan HaarFaceCropper untuk deteksi dan crop
+        face_crop, face_detected = cropper.crop_from_pil(image_pil)
+
+        if face_crop is None:
+            # Fallback: resize langsung
+            print("[APP] Crop failed, using fallback resize...")
+            image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
+            return image_resized, True, False
+
+        # Convert numpy BGR ke PIL RGB
+        image_rgb = cv2.cvtColor(face_crop, cv2.COLOR_BGR2RGB)
+        image_processed = Image.fromarray(image_rgb)
+
+        status = "✅ CROP DETECTED" if face_detected else "⚠️ RESIZE ONLY"
+        print(f"[APP] Preprocessing complete: {status}")
+
+        return image_processed, True, face_detected
+
     except Exception as e:
         print(f"[APP] Preprocessing error: {e}")
         import traceback
@@ -228,10 +216,10 @@ with st.sidebar:
     st.subheader("📝 Preprocessing Pipeline")
     st.write("""
     1. Upload gambar
-    2. Deteksi wajah (MediaPipe)
-    3. Crop & normalize
-    4. Prediksi model
-    5. Tampilkan hasil
+    2. Deteksi wajah (Haar Cascade)
+    3. Crop + padding 20%
+    4. Resize ke 224×224
+    5. Prediksi model
     """)
 
 # Upload gambar
@@ -273,12 +261,12 @@ if uploaded_file is not None:
                 st.write("**Info Preprocessing:**")
                 if face_detected:
                     st.success("✅ **WAJAH TERDETEKSI & DI-CROP!**")
-                    st.write("- Metode: MediaPipe Face Detection")
+                    st.write("- Metode: Haar Cascade (OpenCV)")
                     st.write("- Padding: 20% di sekitar wajah")
                 else:
                     st.warning("⚠️ **WAJAH TIDAK TERDETEKSI - RESIZE ONLY**")
                     st.write("- Metode: Direct Resize (fallback)")
-                    st.write("- Alasan: Blur/Jauh/Sudut Ekstrem")
+                    st.write("- Alasan: Wajah tidak terdeteksi Haar Cascade")
                 st.write(f"- Output Size: 224×224 pixels")
                 st.write(f"- Status: {'✅ Sukses' if preprocess_ok else '❌ Gagal'}")
             
@@ -290,7 +278,7 @@ if uploaded_file is not None:
                 with st.spinner("🔄 Model sedang menganalisis..."):
                     try:
                         # Prediksi
-                        pred_name, confidence, probs_all, top5_names, top5_confs, _ = predict_image(
+                        pred_name, confidence, probs_all, top5_names, top5_confs, face_detected_info = predict_image(
                             image_original, model, class_names, face_cropper
                         )
                         
@@ -305,21 +293,13 @@ if uploaded_file is not None:
                             st.write("**👤 Nama Mahasiswa:**")
                             st.markdown(f"# {pred_name}")
                             st.write(f"**Confidence:** {confidence*100:.2f}%")
-                            
-                            # Color based on confidence
-                            if confidence >= 0.7:
-                                st.success(f"🟢 Sangat Percaya Diri ({confidence*100:.1f}%)")
-                            elif confidence >= 0.5:
-                                st.warning(f"🟡 Percaya Diri ({confidence*100:.1f}%)")
-                            else:
-                                st.error(f"🔴 Kurang Percaya Diri ({confidence*100:.1f}%)")
-                        
+
                         with col2:
                             st.write("**📊 Model Info:**")
                             st.write(f"- Model: ConvNeXt-Tiny")
                             st.write(f"- Akurasi: 70.00%")
                             st.write(f"- Total Kelas: 70 mahasiswa")
-                            st.write(f"- Processing: {'✅ Crop Detected' if face_detected else '⚠️ Resize Only'}")
+                            st.write(f"- Processing: {'✅ Crop Detected' if face_detected_info else '⚠️ Resize Only'}")
                         
                         st.markdown("---")
                         
