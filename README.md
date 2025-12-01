@@ -192,7 +192,7 @@
   #### ConvNeXt-Tiny
 
   - **Best Epoch**: 7/14
-  - **Training Time**: ~0.9 jam
+  - **Training Time**: <20 minutes
   - **Best Val Accuracy**: **70.00%**
   - **Training Accuracy**: 99.52%
   - **Val F1 Score**: 0.65
@@ -203,7 +203,7 @@
   #### Swin Transformer V2 Tiny
 
   - **Best Epoch**: 13/20
-  - **Training Time**: ~1.1 jam
+  - **Training Time**: 23.1 minutes (0.38 hours)
   - **Best Val Accuracy**: **55.71%**
   - **Training Accuracy**: 65.24%
   - **Val F1 Score**: 0.4714

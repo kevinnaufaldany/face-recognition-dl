@@ -1,5 +1,5 @@
 """
-Script untuk preprocessing dataset menggunakan MediaPipe Face Detection
+Script untuk preprocessing dataset menggunakan MediaPipe Face Detection preprocess_dataset.py
 Jalankan script ini SEBELUM training untuk crop dan resize semua gambar
 """
 
