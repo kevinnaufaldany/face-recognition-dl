@@ -1,6 +1,6 @@
 ﻿# 📸 Face Recognition - Deep Learning Project
 
-Sistem klasifikasi wajah menggunakan **ConvNeXt-Tiny** dan **Swin Transformer V2** dengan PyTorch untuk mengenali 70 mahasiswa Matakuliah Deep Learning Teknik Informatika ITERA. Dilengkapi dengan preprocessing otomatis menggunakan Haar Cascade face detection dan Streamlit web interface untuk real-time prediction.
+Sistem klasifikasi wajah menggunakan **ConvNeXt-Tiny** dan **Swin Transformer V2** dengan PyTorch untuk mengenali 70 mahasiswa Matakuliah Deep Learning Teknik Informatika ITERA. Dilengkapi dengan preprocessing otomatis menggunakan mediapipe face detection dan Haar Cascade di Streamlit web interface untuk prediction.
 
 ---
 
@@ -72,7 +72,7 @@ Setiap gambar yang diupload ke aplikasi atau digunakan untuk training harus mela
 ```
 INPUT IMAGE
     ↓
-HAAR CASCADE FACE DETECTION
+Mediapipe FACE DETECTION
     ↓
     ├─→ [SUCCESS] Face Detected
     │       ↓
@@ -115,7 +115,7 @@ python preprocess_dataset.py
 **Fitur Preprocessing:**
 
 - ✅ Multi-file format support (JPG, PNG, WEBP, BMP)
-- ✅ Haar Cascade face detection
+- ✅ Mediapipe face detection
 - ✅ 20% padding around detected face
 - ✅ Automatic resize to 224×224
 - ✅ Center crop fallback jika wajah tidak terdeteksi
@@ -458,7 +458,7 @@ python preprocess_single.py --image path/to/image.jpg --output path/to/output.jp
 streamlit run app.py
 ```
 
-**URL**: `http://localhost:8501`
+**URL**: [https://face-recognition-dl-es-balon-nanas.streamlit.app/](https://face-recognition-dl-es-balon-nanas.streamlit.app/)
 
 ### Application Features
 
@@ -470,7 +470,7 @@ streamlit run app.py
 
 #### 🔄 Automatic Preprocessing
 
-- Haar Cascade face detection
+- Mediapipe face detection
 - Automatic cropping & resizing
 - Side-by-side preview (original vs processed)
 - Status display (Crop Detected or Resize Only)
@@ -574,6 +574,7 @@ face-recognition-dl/
 │       └── confusion_matrix.png    # Confusion matrix
 │
 ├── 📁 utils/
+    └── face_crop.py                # Mediapipe face detection & cropping
 │   └── haar_cropper.py             # Haar Cascade face detection & cropping
 │
 ├── 📁 model_comparison/
