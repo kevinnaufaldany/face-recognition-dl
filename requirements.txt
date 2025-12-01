@@ -1,0 +1,40 @@
+# Face Recognition - Deep Learning Project
+# Python 3.10+
+
+# Core Deep Learning
+torch==2.7.1+cu118
+torchvision==0.20.1+cu118
+torchaudio==2.7.1+cu118
+
+# PyTorch Image Models (for DeiT)
+timm==1.0.11
+
+# Computer Vision & Face Detection
+opencv-python==4.10.0.84
+mediapipe==0.10.14
+Pillow==11.0.0
+
+# Machine Learning & Metrics
+scikit-learn==1.5.2
+numpy==1.26.4
+
+# Visualization
+matplotlib==3.9.2
+seaborn==0.13.2
+
+# Progress Bar
+tqdm==4.66.5
+
+# Utilities
+pathlib2==2.3.7.post1
+
+# Optional: For Jupyter Notebooks
+# jupyter==1.1.1
+# ipykernel==6.29.5
+
+# Optional: For TensorBoard logging
+# tensorboard==2.18.0
+# tensorboardX==2.6.2.2
+
+# Note: Install PyTorch with CUDA support using:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
