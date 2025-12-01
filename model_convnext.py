@@ -17,6 +17,7 @@ class ConvNeXtClassifier(nn.Module):
         if pretrained:
             weights = ConvNeXt_Tiny_Weights.IMAGENET1K_V1
             backbone = convnext_tiny(weights=weights)
+            print("✓ Loaded ConvNeXt_Tiny_Weights with IMAGENET1K_V1 pretrained weights")
         else:
             backbone = convnext_tiny(weights=None)
         
@@ -25,21 +26,15 @@ class ConvNeXtClassifier(nn.Module):
         self.features = backbone.features
         self.avgpool = backbone.avgpool
         
-        # ConvNeXt-Tiny output embedding size is 768, reduce to 128
+        # ConvNeXt-Tiny output embedding size is 768
         self.embedding_size = 768
         
-        # Embedding reduction layer
-        self.embed_reduce = nn.Sequential(
-            nn.Flatten(1),
-            nn.Linear(768, 128),
-            nn.ReLU()
-        )
-        
-        # Classification head
+        # Classification head (directly use 768 dimensions)
         self.head = nn.Sequential(
-            nn.LayerNorm(128, eps=1e-6),
+            nn.Flatten(1),
+            nn.LayerNorm(768, eps=1e-6),
             nn.Dropout(p=dropout),
-            nn.Linear(128, num_classes)
+            nn.Linear(768, num_classes)
         )
         
         self.num_classes = num_classes
@@ -52,10 +47,7 @@ class ConvNeXtClassifier(nn.Module):
         # Global average pooling: (B, 768, H, W) -> (B, 768, 1, 1)
         x = self.avgpool(x)
         
-        # Reduce embedding dimension: (B, 768, 1, 1) -> (B, 128)
-        x = self.embed_reduce(x)
-        
-        # Classification: (B, 128) -> (B, num_classes)
+        # Classification: (B, 768, 1, 1) -> (B, num_classes)
         output = self.head(x)
         
         return output

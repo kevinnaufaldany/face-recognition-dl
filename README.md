@@ -2,6 +2,4 @@
 
 Sistem klasifikasi gambar menggunakan Swin Transformer V2 Small dengan PyTorch untuk 70 kelas.
 
-KTI, Magang, Sains, ICT, sains, 
-
-10 rabo, 11 kemis
+ConvNeXt-Tiny vs Swin Transformer V2 Tiny

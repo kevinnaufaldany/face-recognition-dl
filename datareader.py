@@ -29,7 +29,7 @@ class FaceDataset(Dataset):
         for class_name in self.classes:
             class_dir = self.root_dir / class_name
             for img_path in class_dir.glob('*'):
-                if img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.bmp', '.webp',]:
+                if img_path.suffix.lower() in ['.jpg', '.jpeg', '.png', '.bmp', '.webp']:
                     # Validasi dan perbaiki file corrupt
                     try:
                         # Try to open and verify
@@ -42,8 +42,14 @@ class FaceDataset(Dataset):
                             # Load without verify, convert, and save
                             img = Image.open(img_path)
                             img = img.convert('RGB')
-                            img.save(img_path, quality=95)
-                            self.samples.append((str(img_path), self.class_to_idx[class_name]))
+                            # Save as jpg if webp
+                            if img_path.suffix.lower() == '.webp':
+                                new_path = img_path.with_suffix('.jpg')
+                                img.save(new_path, quality=95)
+                                self.samples.append((str(new_path), self.class_to_idx[class_name]))
+                            else:
+                                img.save(img_path, quality=95)
+                                self.samples.append((str(img_path), self.class_to_idx[class_name]))
                         except Exception:
                             skipped_files.append(img_path.name)
         
@@ -66,12 +72,12 @@ class FaceDataset(Dataset):
         return len(self.classes)
 
 
-def get_transforms(is_training=True):
+def get_transforms(img_size=224, is_training=True):
     """
     Mendefinisikan augmentasi untuk training dan validation/test
-    Input size: 512x512 untuk ArcFace model
     
     Args:
+        img_size (int): Ukuran gambar (224 untuk Swin/DeiT, 512 untuk ConvNeXt/ArcFace)
         is_training (bool): True untuk training transforms, False untuk val/test
     
     Returns:
@@ -79,7 +85,7 @@ def get_transforms(is_training=True):
     """
     if is_training:
         transform = transforms.Compose([
-            transforms.Resize((512, 512)),
+            transforms.Resize((img_size, img_size)),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.05),
             transforms.ToTensor(),
@@ -89,7 +95,7 @@ def get_transforms(is_training=True):
         ])
     else:
         transform = transforms.Compose([
-            transforms.Resize((512, 512)),
+            transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], 
                                std=[0.229, 0.224, 0.225])
@@ -98,19 +104,20 @@ def get_transforms(is_training=True):
     return transform
 
 
-def create_dataloaders(data_dir, batch_size=8, num_workers=0, seed=42):
+def create_dataloaders(data_dir, img_size=224, batch_size=8, num_workers=0, seed=42):
     """
     Membuat DataLoader untuk train dan validation
     Split: 1 foto per kelas untuk validation, sisanya (3 foto) untuk training
     
     Args:
         data_dir (string): Path ke folder Train
+        img_size (int): Ukuran gambar (default 224 untuk Swin/DeiT, 512 untuk ConvNeXt)
         batch_size (int): Batch size untuk DataLoader
         num_workers (int): Number of workers untuk DataLoader
         seed (int): Random seed untuk reproducibility
     
     Returns:
-        tuple: (train_loader, val_loader, num_classes)
+        tuple: (train_loader, val_loader, num_classes, class_names)
     """
     # Set random seed untuk reproducibility
     torch.manual_seed(seed)
@@ -166,8 +173,8 @@ def create_dataloaders(data_dir, batch_size=8, num_workers=0, seed=42):
           f"{len(val_indices)} val ({len(val_indices)/total_images*100:.1f}%)")
     
     # Buat dataset dengan transform yang sesuai
-    train_dataset = FaceDataset(data_dir, transform=get_transforms(is_training=True))
-    val_dataset = FaceDataset(data_dir, transform=get_transforms(is_training=False))
+    train_dataset = FaceDataset(data_dir, transform=get_transforms(img_size=img_size, is_training=True))
+    val_dataset = FaceDataset(data_dir, transform=get_transforms(img_size=img_size, is_training=False))
     
     # Subset berdasarkan indices
     train_dataset = torch.utils.data.Subset(train_dataset, train_indices)
@@ -190,7 +197,10 @@ def create_dataloaders(data_dir, batch_size=8, num_workers=0, seed=42):
         pin_memory=True
     )
     
-    return train_loader, val_loader, num_classes
+    # Get class names for confusion matrix
+    class_names = temp_dataset.classes
+    
+    return train_loader, val_loader, num_classes, class_names
 
 
 if __name__ == "__main__":
@@ -203,7 +213,7 @@ if __name__ == "__main__":
     
     train_loader, val_loader, num_classes = create_dataloaders(
         data_dir, 
-        batch_size=8,
+        batch_size=16,
         num_workers=0  # Set to 0 untuk testing
     )
     

@@ -19,7 +19,7 @@ import seaborn as sns
 warnings.filterwarnings('ignore', category=UserWarning, module='sklearn')
 
 from datareader import create_dataloaders
-from model_deit import create_model
+from model_swin import create_model
 
 
 def plot_metrics(history, save_dir):
@@ -332,7 +332,7 @@ def save_checkpoint(model, optimizer, scheduler, epoch, metrics, filepath):
 def train(
     data_dir='dataset/Train',
     num_classes=70,
-    batch_size=8,
+    batch_size=16,
     epochs=50,
     learning_rate=1e-4,
     weight_decay=0.01,
@@ -340,7 +340,7 @@ def train(
     save_dir='checkpoints'
 ):
     """
-    Main training function untuk DeiT-Small
+    Main training function untuk Swin V2 Tiny
     
     Args:
         data_dir (str): Path ke folder Train
@@ -364,10 +364,10 @@ def train(
         print("WARNING: CUDA not available, using CPU")
     
     print("="*80)
-    print("DeiT-SMALL MODEL TRAINING")
+    print("Swin V2 Tiny MODEL TRAINING")
     print("="*80)
     print(f"Device: {device} | Batch: {batch_size} | Epochs: {epochs} | LR: {learning_rate}")
-    print(f"Input Size: 512x512 | Embedding: 128 | Architecture: DeiT-Small")
+    print(f"Input Size: 512x512 | Embedding: 768 | Architecture: Swin V2 Tiny")
     print(f"Dropout: 0.3 | Label Smoothing: 0.1 | Stochastic Depth: 0.1")
     print("="*80)
     
@@ -375,13 +375,14 @@ def train(
     save_dir = Path(save_dir)
     save_dir.mkdir(exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir = save_dir / f"deit_small_{timestamp}"
+    run_dir = save_dir / f"swin_v2_tiny_{timestamp}"
     run_dir.mkdir(exist_ok=True)
     
     # Load data
     print("\nLoading dataset...")
-    train_loader, val_loader, num_classes = create_dataloaders(
-        data_dir, 
+    train_loader, val_loader, num_classes, class_names = create_dataloaders(
+        data_dir,
+        img_size=512,
         batch_size=batch_size,
         num_workers=4  # Use 4 workers for faster data loading
     )
@@ -395,10 +396,10 @@ def train(
     trainable_params = model.get_num_trainable_params()
     non_trainable = total_params - trainable_params
     
-    print(f"  Architecture  : DeiT-Small (Distilled)")
-    print(f"  Pretrained    : Facebook/ImageNet-1K")
-    print(f"  Input size    : 512x512x3")
-    print(f"  Embedding size: 128 (reduced from 384)")
+    print(f"  Architecture  : Swin Transformer V2 Tiny")
+    print(f"  Pretrained    : IMAGENET1K_V1")
+    print(f"  Input size    : 224x224x3")
+    print(f"  Embedding size: 768")
     print(f"  Classes       : {num_classes}")
     print(f"  Total params  : {total_params:,} ({total_params/1e6:.2f}M)")
     print(f"  Trainable     : {trainable_params:,} ({trainable_params/1e6:.2f}M)")
@@ -415,18 +416,13 @@ def train(
         weight_decay=weight_decay
     )
     
-    # Warmup + Cosine scheduler
-    from torch.optim.lr_scheduler import LambdaLR
-    warmup_epochs = 5
-    
-    def lr_lambda(epoch):
-        if epoch < warmup_epochs:
-            return (epoch + 1) / warmup_epochs
-        else:
-            progress = (epoch - warmup_epochs) / (epochs - warmup_epochs)
-            return 0.5 * (1 + np.cos(np.pi * progress))
-    
-    scheduler = LambdaLR(optimizer, lr_lambda=lr_lambda)
+    # CosineAnnealingWarmRestarts scheduler
+    scheduler = CosineAnnealingWarmRestarts(
+        optimizer,
+        T_0=10,  # Restart every 10 epochs
+        T_mult=2,  # Double the restart interval after each restart
+        eta_min=1e-6  # Minimum learning rate
+    )
     
     # Only use GradScaler if CUDA is available
     if torch.cuda.is_available():
@@ -437,7 +433,7 @@ def train(
     early_stopping = EarlyStopping(patience=7, mode='max')
     
     print(f"  Optimizer     : AdamW (lr={learning_rate}, weight_decay={weight_decay})")
-    print(f"  Scheduler     : Cosine + Warmup ({warmup_epochs} epochs)")
+    print(f"  Scheduler     : CosineAnnealingWarmRestarts (T_0=10, T_mult=2)")
     print(f"  Loss function : CrossEntropyLoss (label_smoothing=0.1)")
     print(f"  Batch size    : {batch_size}")
     print(f"  Epochs        : {epochs}")
@@ -563,11 +559,11 @@ def train(
 if __name__ == "__main__":
     # Training configuration
     CONFIG = {
-        'data_dir': 'dataset/Train',
+        'data_dir': 'dataset/Train',  # Preprocessed with MediaPipe
         'num_classes': 70,
-        'batch_size': 4,
+        'batch_size': 16,
         'epochs': 50,
-        'learning_rate': 3e-5,
+        'learning_rate': 5e-4,
         'weight_decay': 0.01,
         'save_dir': 'checkpoints'
     }
