@@ -2,9 +2,14 @@
 # Python 3.10+
 
 # Core Deep Learning
-torch==2.7.1+cu118
-torchvision==0.20.1+cu118
-torchaudio==2.7.1+cu118
+# torch==2.7.1+cu118
+# torchvision==0.20.1+cu118
+# torchaudio==2.7.1+cu118
+
+# Deep Learning (CPU)
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
 
 # PyTorch Image Models (for DeiT)
 timm==1.0.11
