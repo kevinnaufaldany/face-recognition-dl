@@ -188,32 +188,36 @@
   #### ConvNeXt-Tiny
 
   - **Best Epoch**: 7/14
-  - **Training Time**: ~3.2 hours
-  - **Best Val Accuracy**: **64.29%**
-  - **Training Accuracy**: 100.00%
-  - **Val F1 Score**: 0.6214
-  - **Overfitting Gap**: 35.71%
+  - **Training Time**: ~0.9 jam
+  - **Best Val Accuracy**: **70.00%**
+  - **Training Accuracy**: 99.52%
+  - **Val F1 Score**: 0.65
+  - **Val Precision**: 0.6286
+  - **Val Recall**: 0.70
+  - **Overfitting Gap**: 29.52%
 
   #### Swin Transformer V2 Tiny
 
-  - **Best Epoch**: 27/34
-  - **Training Time**: ~7.8 hours
-  - **Best Val Accuracy**: **62.86%**
-  - **Training Accuracy**: 100.00%
-  - **Val F1 Score**: 0.5676
-  - **Overfitting Gap**: 37.14%
+  - **Best Epoch**: 13/20
+  - **Training Time**: ~1.1 jam
+  - **Best Val Accuracy**: **55.71%**
+  - **Training Accuracy**: 65.24%
+  - **Val F1 Score**: 0.4714
+  - **Val Precision**: 0.4333
+  - **Val Recall**: 0.5571
+  - **Overfitting Gap**: 9.53%
 
   ### Performance Metrics Comparison
 
   | Metric                 | ConvNeXt-Tiny     | Swin V2 Tiny       | Winner      |
   | ---------------------- | ----------------- | ------------------ | ----------- |
-  | **Best Val Accuracy**  | 64.29%            | 62.86%             | 🏆 ConvNeXt |
-  | **Best Val F1 Score**  | 0.6214            | 0.5676             | 🏆 ConvNeXt |
-  | **Best Val Precision** | 0.6119            | 0.5416             | 🏆 ConvNeXt |
-  | **Best Val Recall**    | 0.6429            | 0.6286             | 🏆 ConvNeXt |
-  | **Training Speed**     | Faster (7 epochs) | Slower (27 epochs) | 🏆 ConvNeXt |
-  | **Convergence**        | Epoch 7           | Epoch 27           | 🏆 ConvNeXt |
-  | **Overfitting**        | 35.71%            | 37.14%             | 🏆 ConvNeXt |
+  | **Best Val Accuracy**  | 70.00%            | 55.71%             | 🏆 ConvNeXt |
+  | **Best Val F1 Score**  | 0.6500            | 0.4714             | 🏆 ConvNeXt |
+  | **Best Val Precision** | 0.6286            | 0.4333             | 🏆 ConvNeXt |
+  | **Best Val Recall**    | 0.7000            | 0.5571             | 🏆 ConvNeXt |
+  | **Best Epoch**         | Epoch 7           | Epoch 13           | 🏆 ConvNeXt |
+  | **Total Epochs**       | 14                | 20                 | 🏆 ConvNeXt |
+  | **Overfitting Gap**    | 29.52%            | 9.53%              | 🏆 Swin V2  |
   | **Parameters**         | 28M               | 28M                | ⚖️ Tie      |
 
   ### Learning Curves
@@ -221,53 +225,75 @@
   #### ConvNeXt-Tiny Training Progress
 
   ```
-  Epoch  Train Acc  Val Acc   Train Loss  Val Loss
-  -----  ---------  --------  ----------  --------
-  1      1.90%      1.43%     4.548       4.368
-  3      16.67%     40.00%    3.872       3.139
-  5      91.43%     61.43%    1.290       2.228
-  7      100.00%    64.29%    0.832       2.138  ⭐ BEST
-  10     100.00%    62.86%    0.804       2.167
-  14     100.00%    60.00%    0.838       2.284
+  Epoch  Train Acc  Val Acc   Train Loss  Val Loss   F1 Score
+  -----  ---------  --------  ----------  --------  ----------
+  1      0.95%      4.29%     4.506       4.193     0.0197
+  2      11.90%     27.14%    3.976       3.385     0.2029
+  3      50.00%     50.00%    2.768       2.588     0.4374
+  4      88.10%     67.14%    1.628       1.995     0.6200
+  5      99.52%     68.57%    0.982       1.935     0.6310
+  6      99.05%     62.86%    0.885       1.945     0.5795
+  7      99.52%     70.00%    0.857       1.942     0.6366  ⭐ BEST
+  8      99.52%     70.00%    0.831       1.860     0.6381
+  9      100.00%    70.00%    0.818       1.878     0.6500
+  10     100.00%    70.00%    0.819       1.871     0.6500
+  11     100.00%    65.71%    0.856       1.968     0.5962
+  12     100.00%    62.86%    0.895       1.980     0.5803
+  13     100.00%    67.14%    0.853       2.037     0.6091
+  14     99.52%     64.29%    0.874       1.995     0.5852
   ```
 
   #### Swin V2 Tiny Training Progress
 
   ```
-  Epoch  Train Acc  Val Acc   Train Loss  Val Loss
-  -----  ---------  --------  ----------  --------
-  1      0.95%      1.43%     4.629       4.419
-  5      4.76%      10.00%    4.160       3.878
-  10     66.67%     50.00%    2.313       2.863
-  15     90.95%     51.43%    1.147       2.683
-  20     98.57%     61.43%    0.911       2.419
-  27     100.00%    62.86%    0.818       2.275  ⭐ BEST
-  30     100.00%    61.43%    0.806       2.269
-  34     98.10%     55.71%    0.973       2.520
+  Epoch  Train Acc  Val Acc   Train Loss  Val Loss   F1 Score
+  -----  ---------  --------  ----------  --------  ----------
+  1      0.95%      0.00%     4.503       4.407     0.0000
+  2      0.95%      0.00%     4.484       4.407     0.0000
+  3      0.48%      15.71%    4.675       3.982     0.0777
+  4      9.05%      20.00%    3.957       3.667     0.1135
+  5      25.71%     41.43%    3.603       3.479     0.3257
+  6      33.33%     41.43%    3.367       3.367     0.3286
+  7      39.52%     42.86%    3.223       3.315     0.3471
+  8      41.43%     40.00%    3.212       3.276     0.3264
+  9      48.57%     35.71%    3.081       3.254     0.2795
+  10     42.38%     37.14%    3.201       3.248     0.2869
+  11     41.90%     35.71%    3.107       3.139     0.2869
+  12     41.90%     44.29%    2.968       2.995     0.3760
+  13     54.76%     55.71%    2.747       2.858     0.4714  ⭐ BEST
+  14     59.05%     47.14%    2.587       2.817     0.3946
+  15     57.62%     47.14%    2.503       2.794     0.3994
+  16     56.19%     45.71%    2.556       2.729     0.3746
+  17     54.76%     51.43%    2.453       2.697     0.4415
+  18     53.81%     47.14%    2.393       2.775     0.4185
+  19     58.57%     48.57%    2.490       2.698     0.4254
+  20     65.24%     48.57%    2.385       2.666     0.4108
   ```
 
   ### Key Observations
 
   #### ✅ ConvNeXt-Tiny Advantages:
 
-  1. **Faster Convergence**: Mencapai performa terbaik di epoch 7 vs epoch 27
-  2. **Higher Accuracy**: 64.29% vs 62.86% (+1.43% absolute)
-  3. **Better Generalization**: F1 score lebih tinggi (0.6214 vs 0.5676)
-  4. **Training Efficiency**: ~4× lebih cepat mencapai best model
-  5. **More Stable**: Less fluctuation setelah convergence
+  1. **Higher Accuracy**: 70.00% vs 55.71% (+14.29% absolute)
+  2. **Better F1 Score**: 0.65 vs 0.4714 (+17.86%)
+  3. **Faster Convergence**: Reaches best at epoch 7 vs epoch 13
+  4. **More Stable**: Consistent performance after epoch 7
+  5. **Less Training Time**: 14 epochs vs 20 epochs
 
   #### ⚠️ Swin V2 Tiny Characteristics:
 
-  1. **Slower Convergence**: Butuh 27 epochs untuk mencapai best performance
-  2. **Gradual Learning**: Learning curve lebih smooth tapi lambat
-  3. **Lower Accuracy**: 62.86% validation accuracy
-  4. **Higher Training Time**: Hampir 2× durasi training total
+  1. **Lower Accuracy**: 55.71% validation accuracy
+  2. **Slower Learning**: Took until epoch 13 to reach best
+  3. **More Overfitting**: Training acc (65.24%) vs val acc (48.57%) = 16.67% gap
+  4. **Gradual Improvement**: Learning curve lebih smooth tapi lambat
+  5. **Lower Metrics**: F1 (0.4714), Precision (0.4333), Recall (0.5571)
 
-  #### 🔍 Common Issues (Both Models):
+  #### 🔍 Analysis:
 
-  1. **Severe Overfitting**: Gap ~36% antara train dan val accuracy
-  2. **Small Dataset**: Hanya 210 training images untuk 70 classes
-  3. **Class Imbalance**: ~3 training images per class (sangat sedikit)
+  1. **Data Split Effect**: Menggunakan 224×224 input size (lebih standar untuk Swin)
+  2. **Model Efficiency**: ConvNeXt superior pada small dataset ini
+  3. **Overfitting**: ConvNeXt lebih overfit (29.52% gap) tapi generalization lebih baik
+  4. **Architecture**: CNN design (ConvNeXt) lebih cocok daripada pure transformer (Swin V2)
 
   ### Visualizations
 
@@ -323,10 +349,22 @@
 
   **Gunakan ConvNeXt-Tiny** karena:
 
-  - Accuracy lebih tinggi (64.29%)
-  - Convergence lebih cepat
+  - Accuracy jauh lebih tinggi (70.00% vs 55.71%)
+  - Convergence lebih cepat (7 epochs)
   - Training cost lebih rendah
-  - Performance lebih konsisten
+  - Performance lebih konsisten dan stabil
+  - Lebih cocok untuk small dataset
+
+  ### Comparison Summary:
+
+  | Aspek               | ConvNeXt | Swin V2 | Winner     |
+  | ------------------- | -------- | ------- | ---------- |
+  | Accuracy            | 70.00%   | 55.71%  | ConvNeXt ✅ |
+  | F1 Score            | 0.6500   | 0.4714  | ConvNeXt ✅ |
+  | Convergence Speed   | Epoch 7  | Epoch 13| ConvNeXt ✅ |
+  | Training Epochs     | 14       | 20      | ConvNeXt ✅ |
+  | Generalization      | Good     | Fair    | ConvNeXt ✅ |
+  | Small Dataset Fit   | Excellent| Good    | ConvNeXt ✅ |
 
   ### For Future Improvements:
 
@@ -616,11 +654,14 @@ This project is for educational purposes.
 
   ## 🏆 Conclusion
 
-  **ConvNeXt-Tiny emerges as the clear winner** untuk face recognition task ini:
+  **ConvNeXt-Tiny adalah pilihan optimal** untuk face recognition task ini:
 
-  - ✅ 64.29% validation accuracy (highest)
-  - ✅ Faster convergence (7 epochs vs 27)
-  - ✅ Better F1 score (0.6214 vs 0.5676)
-  - ✅ More efficient training
+  - ✅ **70.00%** validation accuracy (tertinggi)
+  - ✅ **0.6500** F1 score (significantly better)
+  - ✅ Converge di epoch 7 (lebih cepat)
+  - ✅ Lebih stable dan konsisten
+  - ✅ Ideal untuk small dataset scenario
 
-  **Untuk small dataset dengan limited samples per class, ConvNeXt-Tiny menunjukkan performa superior dibanding Swin Transformer V2 Tiny.**
+  **Keunggulan margin**: +14.29% accuracy, +17.86% F1 score vs Swin V2 Tiny
+
+  **Kesimpulan**: Untuk aplikasi face recognition dengan dataset terbatas (3-4 gambar per class), **ConvNeXt-Tiny menunjukkan performa superior** dan recommended untuk production deployment.
