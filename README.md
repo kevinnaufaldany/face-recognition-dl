@@ -44,10 +44,12 @@
   Sebelum training atau inference, setiap gambar harus diproses menggunakan MediaPipe untuk deteksi wajah dan cropping otomatis.
 
   **File Utama**:
+
   - `preprocess_dataset.py` - Script preprocessing untuk dataset training
   - `utils/face_crop.py` - Core face detection & cropping module
 
   **Fitur**:
+
   - ✅ **Deteksi Multi-Strategy**: Menggunakan 2 model MediaPipe (full-range & short-range)
   - ✅ **Automatic Padding**: 20% padding otomatis di sekitar wajah
   - ✅ **Resize Konsisten**: Semua gambar di-resize menjadi 224×224
@@ -62,10 +64,12 @@
   ```
 
   **Output**:
+
   - `dataset/Train_Cropped/` - Dataset hasil preprocessing
   - Setiap subfolder berisi gambar wajah yang sudah di-crop dan resize
 
   **Konfigurasi** (di `preprocess_dataset.py`):
+
   ```python
   INPUT_DIR = "dataset/Train"           # Raw images
   OUTPUT_DIR = "dataset/Train_Cropped"  # Preprocessed output
@@ -209,16 +213,16 @@
 
   ### Performance Metrics Comparison
 
-  | Metric                 | ConvNeXt-Tiny     | Swin V2 Tiny       | Winner      |
-  | ---------------------- | ----------------- | ------------------ | ----------- |
-  | **Best Val Accuracy**  | 70.00%            | 55.71%             | 🏆 ConvNeXt |
-  | **Best Val F1 Score**  | 0.6500            | 0.4714             | 🏆 ConvNeXt |
-  | **Best Val Precision** | 0.6286            | 0.4333             | 🏆 ConvNeXt |
-  | **Best Val Recall**    | 0.7000            | 0.5571             | 🏆 ConvNeXt |
-  | **Best Epoch**         | Epoch 7           | Epoch 13           | 🏆 ConvNeXt |
-  | **Total Epochs**       | 14                | 20                 | 🏆 ConvNeXt |
-  | **Overfitting Gap**    | 29.52%            | 9.53%              | 🏆 Swin V2  |
-  | **Parameters**         | 28M               | 28M                | ⚖️ Tie      |
+  | Metric                 | ConvNeXt-Tiny | Swin V2 Tiny | Winner      |
+  | ---------------------- | ------------- | ------------ | ----------- |
+  | **Best Val Accuracy**  | 70.00%        | 55.71%       | 🏆 ConvNeXt |
+  | **Best Val F1 Score**  | 0.6500        | 0.4714       | 🏆 ConvNeXt |
+  | **Best Val Precision** | 0.6286        | 0.4333       | 🏆 ConvNeXt |
+  | **Best Val Recall**    | 0.7000        | 0.5571       | 🏆 ConvNeXt |
+  | **Best Epoch**         | Epoch 7       | Epoch 13     | 🏆 ConvNeXt |
+  | **Total Epochs**       | 14            | 20           | 🏆 ConvNeXt |
+  | **Overfitting Gap**    | 29.52%        | 9.53%        | 🏆 Swin V2  |
+  | **Parameters**         | 28M           | 28M          | ⚖️ Tie      |
 
   ### Learning Curves
 
@@ -357,14 +361,14 @@
 
   ### Comparison Summary:
 
-  | Aspek               | ConvNeXt | Swin V2 | Winner     |
-  | ------------------- | -------- | ------- | ---------- |
-  | Accuracy            | 70.00%   | 55.71%  | ConvNeXt ✅ |
-  | F1 Score            | 0.6500   | 0.4714  | ConvNeXt ✅ |
-  | Convergence Speed   | Epoch 7  | Epoch 13| ConvNeXt ✅ |
-  | Training Epochs     | 14       | 20      | ConvNeXt ✅ |
-  | Generalization      | Good     | Fair    | ConvNeXt ✅ |
-  | Small Dataset Fit   | Excellent| Good    | ConvNeXt ✅ |
+  | Aspek             | ConvNeXt  | Swin V2  | Winner      |
+  | ----------------- | --------- | -------- | ----------- |
+  | Accuracy          | 70.00%    | 55.71%   | ConvNeXt ✅ |
+  | F1 Score          | 0.6500    | 0.4714   | ConvNeXt ✅ |
+  | Convergence Speed | Epoch 7   | Epoch 13 | ConvNeXt ✅ |
+  | Training Epochs   | 14        | 20       | ConvNeXt ✅ |
+  | Generalization    | Good      | Fair     | ConvNeXt ✅ |
+  | Small Dataset Fit | Excellent | Good     | ConvNeXt ✅ |
 
   ### For Future Improvements:
 
@@ -458,6 +462,7 @@
   Aplikasi interaktif untuk face recognition dengan preprocessing otomatis.
 
   **Fitur**:
+
   - ✅ Upload gambar wajah (JPG, PNG, JPEG)
   - ✅ **Otomatis Preprocessing**: Deteksi wajah & cropping menggunakan MediaPipe
   - ✅ **Prediksi Real-time**: Klasifikasi menggunakan model ConvNeXt-Tiny
@@ -532,12 +537,14 @@
   ### Tips untuk Hasil Terbaik
 
   ✅ **DO**:
+
   - Ambil foto wajah dengan pencahayaan yang cukup
   - Posisikan wajah langsung menghadap kamera
   - Pastikan hanya 1 orang di foto
   - Gunakan foto close-up/medium shot
 
   ❌ **DON'T**:
+
   - Gunakan foto terlalu jauh
   - Ambil foto dengan pencahayaan gelap
   - Gunakan foto yang blur atau noise
