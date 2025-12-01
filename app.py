@@ -98,18 +98,6 @@ def get_transform():
         ),
     ])
 
-def pil_to_cv2(pil_image):
-    """Convert PIL Image to OpenCV BGR format"""
-    rgb_image = np.array(pil_image)
-    bgr_image = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2BGR)
-    return bgr_image
-
-def cv2_to_pil(cv2_image):
-    """Convert OpenCV BGR to PIL Image"""
-    rgb_image = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
-    pil_image = Image.fromarray(rgb_image)
-    return pil_image
-
 def preprocess_image(image_pil, cropper):
     """
     Pipeline preprocessing seperti preprocess_dataset.py
@@ -118,35 +106,39 @@ def preprocess_image(image_pil, cropper):
     3. Resize ke 224x224
     
     Returns:
-        image_processed (numpy BGR), success (bool), face_detected (bool)
+        image_processed (PIL Image), success (bool), face_detected (bool)
     """
     try:
-        # Convert PIL ke OpenCV BGR
-        image_cv2 = pil_to_cv2(image_pil)
+        # Step 1: Gunakan FaceCropper untuk deteksi dan crop
+        if cropper is not None:
+            # Suppress stderr saat cropping
+            stderr_backup = sys.stderr
+            sys.stderr = open(os.devnull, 'w')
+            
+            try:
+                # Panggil method yang tepat
+                face_cropped, success = cropper.detect_and_crop_face_from_pil(image_pil)
+            finally:
+                sys.stderr.close()
+                sys.stderr = stderr_backup
+            
+            if success and face_cropped is not None:
+                # Wajah terdeteksi dan di-crop
+                # face_cropped sudah dalam format numpy BGR 224x224
+                # Convert ke PIL untuk consistency
+                image_rgb = cv2.cvtColor(face_cropped, cv2.COLOR_BGR2RGB)
+                image_processed = Image.fromarray(image_rgb)
+                return image_processed, True, True
         
-        # Suppress stderr saat cropping
-        stderr_backup = sys.stderr
-        sys.stderr = open(os.devnull, 'w')
-        
-        try:
-            # Gunakan detect_and_crop_face
-            face_cropped, success = cropper.detect_and_crop_face(image_pil)
-        finally:
-            sys.stderr.close()
-            sys.stderr = stderr_backup
-        
-        if success and face_cropped is not None:
-            # Wajah terdeteksi dan di-crop
-            return face_cropped, True, True
-        else:
-            # Fallback: resize image original tanpa cropping
-            image_resized = cv2.resize(image_cv2, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_AREA)
-            return image_resized, True, False
+        # Fallback: Jika cropper tidak tersedia atau gagal deteksi
+        # Resize langsung ke 224x224
+        image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
+        return image_resized, True, False
             
     except Exception as e:
-        # Jika ada error, gunakan image original resize
-        image_cv2 = pil_to_cv2(image_pil)
-        image_resized = cv2.resize(image_cv2, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_AREA)
+        print(f"[DEBUG] Preprocessing error: {e}")
+        # Jika ada error, resize langsung
+        image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
         return image_resized, True, False
 
 def predict_image(image_pil, model, class_names, cropper):
@@ -156,18 +148,12 @@ def predict_image(image_pil, model, class_names, cropper):
     Returns:
         pred_name, confidence, probs, top5_names, top5_confs, face_detected
     """
-    # Preprocessing
+    # Preprocessing LANGSUNG
     image_processed, preprocess_ok, face_detected = preprocess_image(image_pil, cropper)
     
-    # Convert dari numpy (BGR) ke PIL (RGB) untuk transform
-    if isinstance(image_processed, np.ndarray):
-        image_for_model = cv2_to_pil(image_processed)
-    else:
-        image_for_model = image_processed
-    
-    # Transform ke tensor
+    # Transform ke tensor (image_processed sudah PIL Image)
     transform = get_transform()
-    img_t = transform(image_for_model).unsqueeze(0)
+    img_t = transform(image_processed).unsqueeze(0)
     
     # Inference
     with torch.no_grad():
@@ -253,85 +239,107 @@ uploaded_file = st.file_uploader(
 if uploaded_file is not None:
     # Baca gambar
     try:
-        image = Image.open(uploaded_file).convert("RGB")
+        image_original = Image.open(uploaded_file).convert("RGB")
     except Exception as e:
         st.error(f"❌ Error membaca gambar: {e}")
         st.stop()
     
-    # Tampilkan preview
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.image(image, caption="Foto Original", use_container_width=True)
-    
-    with col2:
-        st.write("**Info Gambar:**")
-        st.write(f"- Ukuran: {image.size}")
-        st.write(f"- Format: {image.format}")
-        st.write(f"- Mode: {image.mode}")
-    
+    # LANGSUNG PREPROSES SAAT UPLOAD
     st.markdown("---")
+    st.subheader("🔄 Processing Data...")
     
-    # Button prediksi
-    if st.button("🚀 Prediksi", key="predict_btn", use_container_width=True):
-        with st.spinner("🔄 Sedang memproses..."):
-            try:
-                # Prediksi
-                pred_name, confidence, probs_all, top5_names, top5_confs, face_detected = predict_image(
-                    image, model, class_names, face_cropper
-                )
-                
-                # Tampilkan hasil
-                st.markdown("---")
-                st.subheader("✅ Hasil Prediksi")
-                
-                # Prediksi utama
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.write("**👤 Nama Mahasiswa:**")
-                    st.markdown(f"# {pred_name}")
-                    st.write(f"**Confidence:** {confidence*100:.2f}%")
-                    
-                    # Color based on confidence
-                    if confidence >= 0.7:
-                        st.success(f"🟢 Sangat Percaya Diri ({confidence*100:.1f}%)")
-                    elif confidence >= 0.5:
-                        st.warning(f"🟡 Percaya Diri ({confidence*100:.1f}%)")
-                    else:
-                        st.error(f"🔴 Kurang Percaya Diri ({confidence*100:.1f}%)")
-                
-                with col2:
-                    st.write("**🔍 Info Preprocessing:**")
-                    if face_detected:
-                        st.info(f"✅ Wajah terdeteksi & di-crop")
-                    else:
-                        st.warning(f"⚠️ Wajah tidak terdeteksi, gunakan image original")
-                
-                st.markdown("---")
-                
-                # Top 5
-                st.subheader("🏆 Top 5 Kandidat")
-                
-                top5_data = {
-                    'Rank': ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'],
-                    'Nama': top5_names,
-                    'Confidence': [f"{c*100:.2f}%" for c in top5_confs]
-                }
-                
-                st.dataframe(
-                    top5_data,
-                    use_container_width=True,
-                    hide_index=True
-                )
-                
-                # Chart
-                st.markdown("**Grafik Confidence (Top 5):**")
-                chart_df = {"Kandidat": top5_names, "Confidence (%)": top5_confs * 100}
-                st.bar_chart(chart_df, x="Kandidat", y="Confidence (%)")
-                
-            except Exception as e:
-                st.error(f"❌ Error prediksi: {e}")
+    with st.spinner("Sedang melakukan preprocessing..."):
+        try:
+            # Preprocess langsung
+            image_processed, preprocess_ok, face_detected = preprocess_image(image_original, face_cropper)
+            
+            # Tampilkan preview
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.image(image_original, caption="Foto Original", use_container_width=True)
+                st.write("**Info Gambar Original:**")
+                st.write(f"- Ukuran: {image_original.size}")
+                st.write(f"- Format: {uploaded_file.name}")
+            
+            with col2:
+                st.image(image_processed, caption="Hasil Preprocessing (224×224)", use_container_width=True)
+                st.write("**Info Preprocessing:**")
+                if face_detected:
+                    st.success("✅ Wajah Terdeteksi & Di-Crop")
+                else:
+                    st.warning("⚠️ Wajah Tidak Terdeteksi (Resize Langsung)")
+                st.write(f"- Output Size: 224×224 pixels")
+                st.write(f"- Status: {'Sukses' if preprocess_ok else 'Gagal'}")
+            
+            st.markdown("---")
+            st.subheader("✅ Siap untuk Prediksi")
+            
+            # Button prediksi
+            if st.button("🚀 Prediksi Sekarang", key="predict_btn", use_container_width=True):
+                with st.spinner("🔄 Model sedang menganalisis..."):
+                    try:
+                        # Prediksi
+                        pred_name, confidence, probs_all, top5_names, top5_confs, _ = predict_image(
+                            image_original, model, class_names, face_cropper
+                        )
+                        
+                        # Tampilkan hasil
+                        st.markdown("---")
+                        st.subheader("✅ Hasil Prediksi")
+                        
+                        # Prediksi utama
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.write("**👤 Nama Mahasiswa:**")
+                            st.markdown(f"# {pred_name}")
+                            st.write(f"**Confidence:** {confidence*100:.2f}%")
+                            
+                            # Color based on confidence
+                            if confidence >= 0.7:
+                                st.success(f"🟢 Sangat Percaya Diri ({confidence*100:.1f}%)")
+                            elif confidence >= 0.5:
+                                st.warning(f"🟡 Percaya Diri ({confidence*100:.1f}%)")
+                            else:
+                                st.error(f"🔴 Kurang Percaya Diri ({confidence*100:.1f}%)")
+                        
+                        with col2:
+                            st.write("**📊 Model Info:**")
+                            st.write(f"- Model: ConvNeXt-Tiny")
+                            st.write(f"- Akurasi: 70.00%")
+                            st.write(f"- Total Kelas: 70 mahasiswa")
+                            st.write(f"- Processing: {'Dengan face detection' if face_detected else 'Resize biasa'}")
+                        
+                        st.markdown("---")
+                        
+                        # Top 5
+                        st.subheader("🏆 Top 5 Kandidat")
+                        
+                        top5_data = {
+                            'Rank': [1, 2, 3, 4, 5],
+                            'Nama': top5_names,
+                            'Confidence': [f"{c*100:.2f}%" for c in top5_confs]
+                        }
+                        
+                        st.dataframe(
+                            top5_data,
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                        
+                        # Chart
+                        st.markdown("**📈 Grafik Confidence (Top 5):**")
+                        chart_df = {"Kandidat": top5_names, "Confidence (%)": top5_confs * 100}
+                        st.bar_chart(chart_df, x="Kandidat", y="Confidence (%)")
+                        
+                    except Exception as e:
+                        st.error(f"❌ Error prediksi: {str(e)}")
+        
+        except Exception as e:
+            st.error(f"❌ Error preprocessing: {str(e)}")
+            import traceback
+            st.code(traceback.format_exc())
 
 else:
-    st.info("👆 Silakan upload foto terlebih dahulu")
+    st.info("👆 Upload foto wajah untuk memulai")

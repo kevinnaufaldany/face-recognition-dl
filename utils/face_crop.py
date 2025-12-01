@@ -72,6 +72,31 @@ class FaceCropper:
             sys.stderr.close()
             sys.stderr = stderr
     
+    def detect_and_crop_face_from_pil(self, pil_image):
+        """
+        Deteksi wajah dan crop dari PIL Image
+        
+        Args:
+            pil_image: PIL Image (RGB format)
+            
+        Returns:
+            cropped_face: numpy array BGR (224x224)
+            success: True jika wajah terdeteksi, False jika tidak
+        """
+        try:
+            # Convert PIL RGB ke OpenCV BGR
+            import cv2
+            image_array = np.array(pil_image)  # Convert PIL to numpy (RGB)
+            image = cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR
+        except Exception as e:
+            return None, False
+        
+        if image is None:
+            return None, False
+        
+        # Lanjutkan dengan logic deteksi sama seperti sebelumnya
+        return self._detect_and_crop_from_cv2(image)
+    
     def detect_and_crop_face(self, image_path):
         """
         Deteksi wajah dan crop dengan padding - Multi-strategy approach
@@ -98,6 +123,10 @@ class FaceCropper:
         
         if image is None:
             return None, False
+        
+        return self._detect_and_crop_from_cv2(image)
+    
+    def _detect_and_crop_from_cv2(self, image):
         
         # Convert BGR to RGB
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
