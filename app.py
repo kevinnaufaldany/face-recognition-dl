@@ -111,13 +111,15 @@ def preprocess_image(image_pil, cropper):
     try:
         # Step 1: Gunakan FaceCropper untuk deteksi dan crop
         if cropper is not None:
-            # Suppress stderr saat cropping
+            # Suppress stderr saat cropping tapi capture print statements
+            print("[APP] Starting face detection...")
             stderr_backup = sys.stderr
             sys.stderr = open(os.devnull, 'w')
             
             try:
                 # Panggil method yang tepat
                 face_cropped, success = cropper.detect_and_crop_face_from_pil(image_pil)
+                print(f"[APP] Detection result: success={success}")
             finally:
                 sys.stderr.close()
                 sys.stderr = stderr_backup
@@ -126,17 +128,21 @@ def preprocess_image(image_pil, cropper):
                 # Wajah terdeteksi dan di-crop
                 # face_cropped sudah dalam format numpy BGR 224x224
                 # Convert ke PIL untuk consistency
+                print("[APP] Face detected! Converting to PIL...")
                 image_rgb = cv2.cvtColor(face_cropped, cv2.COLOR_BGR2RGB)
                 image_processed = Image.fromarray(image_rgb)
-                return image_processed, True, True
+                return image_processed, True, True  # ← FACE DETECTED!
         
         # Fallback: Jika cropper tidak tersedia atau gagal deteksi
         # Resize langsung ke 224x224
+        print("[APP] No face detected, using fallback resize...")
         image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
-        return image_resized, True, False
+        return image_resized, True, False  # ← NO FACE DETECTED
             
     except Exception as e:
-        print(f"[DEBUG] Preprocessing error: {e}")
+        print(f"[APP] Preprocessing error: {e}")
+        import traceback
+        traceback.print_exc()
         # Jika ada error, resize langsung
         image_resized = image_pil.resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
         return image_resized, True, False
@@ -248,7 +254,7 @@ if uploaded_file is not None:
     st.markdown("---")
     st.subheader("🔄 Processing Data...")
     
-    with st.spinner("Sedang melakukan preprocessing..."):
+    with st.spinner("Sedang melakukan preprocessing dan deteksi wajah..."):
         try:
             # Preprocess langsung
             image_processed, preprocess_ok, face_detected = preprocess_image(image_original, face_cropper)
@@ -257,20 +263,24 @@ if uploaded_file is not None:
             col1, col2 = st.columns(2)
             
             with col1:
-                st.image(image_original, caption="Foto Original", use_container_width=True)
+                st.image(image_original, caption="📸 Foto Original", use_container_width=True)
                 st.write("**Info Gambar Original:**")
                 st.write(f"- Ukuran: {image_original.size}")
                 st.write(f"- Format: {uploaded_file.name}")
             
             with col2:
-                st.image(image_processed, caption="Hasil Preprocessing (224×224)", use_container_width=True)
+                st.image(image_processed, caption="✅ Hasil Preprocessing (224×224)", use_container_width=True)
                 st.write("**Info Preprocessing:**")
                 if face_detected:
-                    st.success("✅ Wajah Terdeteksi & Di-Crop")
+                    st.success("✅ **WAJAH TERDETEKSI & DI-CROP!**")
+                    st.write("- Metode: MediaPipe Face Detection")
+                    st.write("- Padding: 20% di sekitar wajah")
                 else:
-                    st.warning("⚠️ Wajah Tidak Terdeteksi (Resize Langsung)")
+                    st.warning("⚠️ **WAJAH TIDAK TERDETEKSI - RESIZE ONLY**")
+                    st.write("- Metode: Direct Resize (fallback)")
+                    st.write("- Alasan: Blur/Jauh/Sudut Ekstrem")
                 st.write(f"- Output Size: 224×224 pixels")
-                st.write(f"- Status: {'Sukses' if preprocess_ok else 'Gagal'}")
+                st.write(f"- Status: {'✅ Sukses' if preprocess_ok else '❌ Gagal'}")
             
             st.markdown("---")
             st.subheader("✅ Siap untuk Prediksi")
@@ -309,7 +319,7 @@ if uploaded_file is not None:
                             st.write(f"- Model: ConvNeXt-Tiny")
                             st.write(f"- Akurasi: 70.00%")
                             st.write(f"- Total Kelas: 70 mahasiswa")
-                            st.write(f"- Processing: {'Dengan face detection' if face_detected else 'Resize biasa'}")
+                            st.write(f"- Processing: {'✅ Crop Detected' if face_detected else '⚠️ Resize Only'}")
                         
                         st.markdown("---")
                         

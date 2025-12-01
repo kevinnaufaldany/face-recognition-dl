@@ -53,13 +53,13 @@ class FaceCropper:
             self.mp_face_detection = mp.solutions.face_detection
             self.face_detection_full = self.mp_face_detection.FaceDetection(
                 model_selection=1,  # Full range detection (0-5 meters)
-                min_detection_confidence=0.3  # Lower confidence for better recall
+                min_detection_confidence=0.1  # VERY LOW - aggressive detection
             )
             
             # Secondary detector for close-range (0-2 meters)
             self.face_detection_close = self.mp_face_detection.FaceDetection(
                 model_selection=0,  # Short range detection
-                min_detection_confidence=0.3
+                min_detection_confidence=0.1  # VERY LOW - aggressive detection
             )
             
             # Dummy call to trigger all initialization warnings
@@ -134,27 +134,43 @@ class FaceCropper:
         
         bbox = None
         
-        # Strategy 1: Full range detector (confidence 0.3)
+        # Strategy 1: Full range detector with confidence 0.1
         results = self.face_detection_full.process(image_rgb)
         if results.detections:
             bbox = results.detections[0].location_data.relative_bounding_box
+            print(f"[DEBUG] Strategy 1 (full 0.1): DETECTED")
+        else:
+            print(f"[DEBUG] Strategy 1 (full 0.1): Not detected")
         
-        # Strategy 2: Close range detector jika Strategy 1 gagal
+        # Strategy 2: Close range detector dengan confidence 0.1
         if bbox is None:
             results = self.face_detection_close.process(image_rgb)
             if results.detections:
                 bbox = results.detections[0].location_data.relative_bounding_box
+                print(f"[DEBUG] Strategy 2 (close 0.1): DETECTED")
+            else:
+                print(f"[DEBUG] Strategy 2 (close 0.1): Not detected")
         
-        # Strategy 3: Even lower confidence (0.1) with full range
+        # Strategy 3: Even lower confidence (0.05) with full range
         if bbox is None:
-            self.face_detection_full.min_detection_confidence = 0.1
-            results = self.face_detection_full.process(image_rgb)
-            if results.detections:
-                bbox = results.detections[0].location_data.relative_bounding_box
-            self.face_detection_full.min_detection_confidence = 0.3  # Reset
+            try:
+                temp_detector = self.mp_face_detection.FaceDetection(
+                    model_selection=1,
+                    min_detection_confidence=0.05
+                )
+                results = temp_detector.process(image_rgb)
+                if results.detections:
+                    bbox = results.detections[0].location_data.relative_bounding_box
+                    print(f"[DEBUG] Strategy 3 (full 0.05): DETECTED")
+                else:
+                    print(f"[DEBUG] Strategy 3 (full 0.05): Not detected")
+                temp_detector.close()
+            except:
+                print(f"[DEBUG] Strategy 3: Error")
         
         # Strategy 4: Fallback to intelligent center crop
         if bbox is None:
+            print(f"[DEBUG] Strategy 4: Using center crop fallback")
             # Crop center dengan aspect ratio untuk portrait
             # Asumsi: wajah biasanya di tengah gambar portrait
             crop_h = int(h * 0.8)  # 80% tinggi
@@ -182,6 +198,8 @@ class FaceCropper:
         box_w = int(bbox.width * w)
         box_h = int(bbox.height * h)
         
+        print(f"[DEBUG] Face bbox: x={x}, y={y}, w={box_w}, h={box_h}")
+        
         # Tambahkan padding 20%
         padding_w = int(box_w * self.padding_percent / 100)
         padding_h = int(box_h * self.padding_percent / 100)
@@ -192,6 +210,8 @@ class FaceCropper:
         x2 = min(w, x + box_w + padding_w)
         y2 = min(h, y + box_h + padding_h)
         
+        print(f"[DEBUG] Crop coords: x1={x1}, y1={y1}, x2={x2}, y2={y2}")
+        
         # Crop wajah
         face_crop = image[y1:y2, x1:x2]
         
@@ -199,6 +219,8 @@ class FaceCropper:
             # Fallback: resize entire image
             face_resized = cv2.resize(image, self.target_size, interpolation=cv2.INTER_AREA)
             return face_resized, True
+        
+        print(f"[DEBUG] Crop successful: {face_crop.shape} -> resizing to {self.target_size}")
         
         # Resize ke target size (224x224)
         face_resized = cv2.resize(face_crop, self.target_size, interpolation=cv2.INTER_AREA)
