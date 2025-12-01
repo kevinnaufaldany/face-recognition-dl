@@ -38,12 +38,51 @@ Proyek ini mengimplementasikan sistem face recognition menggunakan dua arsitektu
 
 **Key Features:**
 
-- 🎯 **Best Validation Accuracy: 71.43%** - Swin V2 Tiny
+- 🎯 **Best Validation Accuracy: 70.00%** - ConvNeXt-Tiny
 - 🔄 **Automatic Preprocessing** - Deteksi wajah & cropping otomatis
 - 🚀 **Real-time Inference** - Prediksi langsung via web interface
 - 📊 **Top-5 Predictions** - Tampilkan 5 kandidat terbaik dengan confidence score
 - 🖼️ **Visual Feedback** - Preview preprocessing results sebelum prediksi
 - 📈 **Model Comparison** - Analisis perbandingan ConvNeXt vs Swin Transformer
+
+---
+
+## 📊 Model Comparison Results
+
+Berikut adalah hasil perbandingan antara model **ConvNeXt-Tiny** dan **Swin Transformer V2 Tiny**:
+
+### 🏆 Performance Summary
+
+![Performance Summary](model_comparison/performance_summary.png)
+
+> **Ringkasan metrik performa** kedua model termasuk Validation Accuracy, F1 Score, Precision, dan Recall.
+
+### 📈 Full Model Comparison
+
+![Model Comparison Full](model_comparison/model_comparison_full.png)
+
+> **Perbandingan lengkap** antara ConvNeXt-Tiny dan Swin V2 Tiny meliputi training curves, accuracy progression, dan loss dynamics.
+
+### ⚠️ Overfitting Analysis
+
+![Overfitting Analysis](model_comparison/overfitting_analysis.png)
+
+> **Analisis overfitting** menunjukkan gap antara training dan validation accuracy untuk mengevaluasi generalisasi model.
+
+### 📊 Quick Comparison Table
+
+| Metrik                 | ConvNeXt-Tiny | Swin V2 Tiny | Winner             |
+| ---------------------- | ------------- | ------------ | ------------------ |
+| **Best Val Accuracy**  | 70.00%        | 55.71%       | 🏆 ConvNeXt        |
+| **Best F1 Score**      | 0.6500        | 0.4714       | 🏆 ConvNeXt        |
+| **Best Val Precision** | 62.86%        | 43.33%       | 🏆 ConvNeXt        |
+| **Best Val Recall**    | 70.00%        | 55.71%       | 🏆 ConvNeXt        |
+| **Best Epoch**         | 7 / 14        | 13 / 20      | ConvNeXt (faster)  |
+| **Total Epochs**       | 14            | 20           | ConvNeXt (shorter) |
+| **Convergence**        | Fast          | Slow         | 🏆 ConvNeXt        |
+| **Parameters**         | 28M           | 28M          | Tie                |
+
+> 📌 **Kesimpulan**: ConvNeXt-Tiny menunjukkan performa yang **jauh lebih baik** dibandingkan Swin V2 Tiny pada dataset ini, dengan validation accuracy **14.29% lebih tinggi** dan konvergensi yang lebih cepat.
 
 ---
 
@@ -328,40 +367,6 @@ checkpoints/convnext_tiny_20251201_144518/
 ├── f1_score.png             # F1 score curve
 └── confusion_matrix.png     # Confusion matrix visualization
 ```
-
----
-
-## 📊 Model Comparison Results
-
-Berikut adalah hasil perbandingan antara model **ConvNeXt-Tiny** dan **Swin Transformer V2 Tiny**:
-
-### 🏆 Performance Summary
-
-![Performance Summary](model_comparison/performance_summary.png)
-
-> **Ringkasan metrik performa** kedua model termasuk Validation Accuracy, F1 Score, Precision, dan Recall.
-
-### 📈 Full Model Comparison
-
-![Model Comparison Full](model_comparison/model_comparison_full.png)
-
-> **Perbandingan lengkap** antara ConvNeXt-Tiny dan Swin V2 Tiny meliputi training curves, accuracy progression, dan loss dynamics.
-
-### ⚠️ Overfitting Analysis
-
-![Overfitting Analysis](model_comparison/overfitting_analysis.png)
-
-> **Analisis overfitting** menunjukkan gap antara training dan validation accuracy untuk mengevaluasi generalisasi model.
-
-### 📊 Quick Comparison Table
-
-| Metrik                 | ConvNeXt-Tiny | Swin V2 Tiny | Winner            |
-| ---------------------- | ------------- | ------------ | ----------------- |
-| **Best Val Accuracy**  | 70.00%        | 71.43%       | 🏆 Swin V2        |
-| **Best F1 Score**      | 0.6500        | 0.6557       | 🏆 Swin V2        |
-| **Best Epoch**         | 7             | 13           | ConvNeXt (faster) |
-| **Training Stability** | Stable        | Stable       | Tie               |
-| **Parameters**         | 28M           | 28M          | Tie               |
 
 ---
 

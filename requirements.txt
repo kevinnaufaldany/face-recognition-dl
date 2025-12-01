@@ -7,9 +7,9 @@
 # torchaudio==2.7.1+cu118
 
 # Deep Learning (CPU)
-torch==2.5.1
-torchvision==0.20.1
-torchaudio==2.5.1
+torch==2.7.0
+torchvision==0.22.0
+torchaudio==2.7.0
 
 # PyTorch Image Models (for DeiT)
 timm==1.0.11
