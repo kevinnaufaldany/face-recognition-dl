@@ -16,7 +16,7 @@ timm==1.0.11
 
 # Computer Vision & Face Detection
 opencv-python==4.10.0.84
-mediapipe==0.10.14
+# mediapipe==0.10.14
 Pillow==11.0.0
 
 # Machine Learning & Metrics
