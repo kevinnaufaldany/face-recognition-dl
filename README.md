@@ -1,12 +1,13 @@
-# 📸 Face Recognition - Deep Learning Project
+﻿# 📸 Face Recognition - Deep Learning Project
 
-Sistem klasifikasi wajah menggunakan **ConvNeXt-Tiny** dengan PyTorch untuk mengenali 70 mahasiswa Matakuliah Deep Learning Teknik Informatika ITERA. Dilengkapi dengan preprocessing otomatis menggunakan Haar Cascade face detection dan Streamlit web interface untuk real-time prediction.
+Sistem klasifikasi wajah menggunakan **ConvNeXt-Tiny** dan **Swin Transformer V2** dengan PyTorch untuk mengenali 70 mahasiswa Matakuliah Deep Learning Teknik Informatika ITERA. Dilengkapi dengan preprocessing otomatis menggunakan Haar Cascade face detection dan Streamlit web interface untuk real-time prediction.
 
 ---
 
 ## 📋 Daftar Isi
 
 - [Overview](#-overview)
+- [Model Comparison Results](#-model-comparison-results)
 - [Dataset](#-dataset)
 - [Preprocessing Pipeline](#-preprocessing-pipeline)
 - [Model Architecture](#-model-architecture)
@@ -22,34 +23,41 @@ Sistem klasifikasi wajah menggunakan **ConvNeXt-Tiny** dengan PyTorch untuk meng
 
 ## 🎯 Overview
 
-Proyek ini mengimplementasikan sistem face recognition menggunakan arsitektur **ConvNeXt-Tiny**, sebuah CNN modern yang menggabungkan design principles dari Vision Transformers.
+Proyek ini mengimplementasikan sistem face recognition menggunakan dua arsitektur modern:
+
+- **ConvNeXt-Tiny** - CNN modern yang menggabungkan design principles dari Vision Transformers
+- **Swin Transformer V2** - Vision Transformer dengan shifted window mechanism
 
 **Tujuan Utama:**
+
 - ✅ Mengidentifikasi identitas mahasiswa dari foto wajah
+- ✅ Membandingkan performa ConvNeXt vs Swin Transformer
 - ✅ Mencapai akurasi tinggi pada dataset kecil (4 gambar per kelas)
 - ✅ Menyediakan web interface yang user-friendly untuk inference
 - ✅ Otomasi preprocessing dengan face detection
 
 **Key Features:**
-- 🎯 **70.00% Validation Accuracy** - Performa tinggi pada dataset terbatas
+
+- 🎯 **Best Validation Accuracy: 71.43%** - Swin V2 Tiny
 - 🔄 **Automatic Preprocessing** - Deteksi wajah & cropping otomatis
 - 🚀 **Real-time Inference** - Prediksi langsung via web interface
 - 📊 **Top-5 Predictions** - Tampilkan 5 kandidat terbaik dengan confidence score
 - 🖼️ **Visual Feedback** - Preview preprocessing results sebelum prediksi
+- 📈 **Model Comparison** - Analisis perbandingan ConvNeXt vs Swin Transformer
 
 ---
 
 ## 📊 Dataset
 
-| Properti | Nilai |
-|----------|-------|
-| **Total Gambar** | 280 images |
-| **Jumlah Kelas** | 70 mahasiswa |
-| **Distribusi** | ~4 gambar per kelas |
+| Properti            | Nilai                       |
+| ------------------- | --------------------------- |
+| **Total Gambar**    | 280 images                  |
+| **Jumlah Kelas**    | 70 mahasiswa                |
+| **Distribusi**      | ~4 gambar per kelas         |
 | **Train/Val Split** | 75% / 25% (210 / 70 images) |
-| **Format** | JPG, JPEG, PNG, WEBP |
-| **Resolusi Asli** | Bervariasi |
-| **Target Resolusi** | 224×224 pixels |
+| **Format**          | JPG, JPEG, PNG, WEBP        |
+| **Resolusi Asli**   | Bervariasi                  |
+| **Target Resolusi** | 224×224 pixels              |
 
 ---
 
@@ -100,10 +108,12 @@ python preprocess_dataset.py
 ```
 
 **Input & Output:**
+
 - **Input**: `dataset/Train/` - Raw images
 - **Output**: `dataset/Train_Cropped/` - Preprocessed faces (224×224)
 
 **Fitur Preprocessing:**
+
 - ✅ Multi-file format support (JPG, PNG, WEBP, BMP)
 - ✅ Haar Cascade face detection
 - ✅ 20% padding around detected face
@@ -120,6 +130,7 @@ python preprocess_single.py --image path/to/image.jpg --output path/to/output.jp
 ```
 
 **Argumen:**
+
 - `--image`: Path gambar input
 - `--output`: Path gambar output
 - `--padding`: Padding percentage (default: 20)
@@ -149,6 +160,7 @@ face_cropped, detected = cropper.detect_and_crop(cv_image)
 ```
 
 **Output:**
+
 - `face_cropped`: numpy array BGR format, 224×224
 - `detected`: Boolean (True jika wajah terdeteksi, False jika fallback)
 
@@ -160,14 +172,14 @@ face_cropped, detected = cropper.detect_and_crop(cv_image)
 
 **Spesifikasi:**
 
-| Properti | Nilai |
-|----------|-------|
-| **Base Model** | ConvNeXt-Tiny (ImageNet-1K pretrained) |
-| **Total Parameters** | 28M |
-| **Input Size** | 224×224×3 |
-| **Embedding Dimension** | 768 |
-| **Stochastic Depth** | 0.1 |
-| **Number of Classes** | 70 |
+| Properti                | Nilai                                  |
+| ----------------------- | -------------------------------------- |
+| **Base Model**          | ConvNeXt-Tiny (ImageNet-1K pretrained) |
+| **Total Parameters**    | 28M                                    |
+| **Input Size**          | 224×224×3                              |
+| **Embedding Dimension** | 768                                    |
+| **Stochastic Depth**    | 0.1                                    |
+| **Number of Classes**   | 70                                     |
 
 **Architecture Flow:**
 
@@ -209,19 +221,19 @@ model = create_model(
 
 ### Hyperparameters
 
-| Parameter | Nilai | Deskripsi |
-|-----------|-------|-----------|
-| **Optimizer** | AdamW | Weight decay optimizer |
-| **Learning Rate** | 5e-4 | Initial LR |
-| **Weight Decay** | 0.01 | L2 regularization |
-| **Batch Size** | 16 | Per batch |
-| **Epochs** | 50 | Max epochs |
-| **Scheduler** | CosineAnnealingWarmRestarts | T_0=10, T_mult=2 |
-| **Loss Function** | CrossEntropyLoss | Label smoothing=0.1 |
-| **Dropout** | 0.3 | Regularization |
-| **Gradient Clipping** | max_norm=1.0 | Prevent explosion |
-| **Mixed Precision** | AMP (FP16) | CUDA accelerated |
-| **Early Stopping** | Patience=7 | Monitor val_acc |
+| Parameter             | Nilai                       | Deskripsi              |
+| --------------------- | --------------------------- | ---------------------- |
+| **Optimizer**         | AdamW                       | Weight decay optimizer |
+| **Learning Rate**     | 5e-4                        | Initial LR             |
+| **Weight Decay**      | 0.01                        | L2 regularization      |
+| **Batch Size**        | 16                          | Per batch              |
+| **Epochs**            | 50                          | Max epochs             |
+| **Scheduler**         | CosineAnnealingWarmRestarts | T_0=10, T_mult=2       |
+| **Loss Function**     | CrossEntropyLoss            | Label smoothing=0.1    |
+| **Dropout**           | 0.3                         | Regularization         |
+| **Gradient Clipping** | max_norm=1.0                | Prevent explosion      |
+| **Mixed Precision**   | AMP (FP16)                  | CUDA accelerated       |
+| **Early Stopping**    | Patience=7                  | Monitor val_acc        |
 
 ### Data Augmentation (Training)
 
@@ -258,6 +270,7 @@ Output (Tensor)
 ### Training Summary - ConvNeXt-Tiny
 
 **Best Performance:**
+
 - ✅ **Best Epoch**: 7 / 14
 - ✅ **Val Accuracy**: **70.00%**
 - ✅ **Val F1 Score**: 0.6500
@@ -268,13 +281,13 @@ Output (Tensor)
 
 ### Metrics Breakdown
 
-| Metrik | Value | Deskripsi |
-|--------|-------|-----------|
-| **Accuracy** | 70.00% | Correct predictions / total |
-| **Precision** | 62.86% | True positives / predicted positives |
-| **Recall** | 70.00% | True positives / actual positives |
-| **F1 Score** | 0.6500 | Harmonic mean of precision & recall |
-| **Top-5 Accuracy** | Higher | Prediksi benar dalam top-5 |
+| Metrik             | Value  | Deskripsi                            |
+| ------------------ | ------ | ------------------------------------ |
+| **Accuracy**       | 70.00% | Correct predictions / total          |
+| **Precision**      | 62.86% | True positives / predicted positives |
+| **Recall**         | 70.00% | True positives / actual positives    |
+| **F1 Score**       | 0.6500 | Harmonic mean of precision & recall  |
+| **Top-5 Accuracy** | Higher | Prediksi benar dalam top-5           |
 
 ### Training History
 
@@ -315,6 +328,40 @@ checkpoints/convnext_tiny_20251201_144518/
 ├── f1_score.png             # F1 score curve
 └── confusion_matrix.png     # Confusion matrix visualization
 ```
+
+---
+
+## 📊 Model Comparison Results
+
+Berikut adalah hasil perbandingan antara model **ConvNeXt-Tiny** dan **Swin Transformer V2 Tiny**:
+
+### 🏆 Performance Summary
+
+![Performance Summary](model_comparison/performance_summary.png)
+
+> **Ringkasan metrik performa** kedua model termasuk Validation Accuracy, F1 Score, Precision, dan Recall.
+
+### 📈 Full Model Comparison
+
+![Model Comparison Full](model_comparison/model_comparison_full.png)
+
+> **Perbandingan lengkap** antara ConvNeXt-Tiny dan Swin V2 Tiny meliputi training curves, accuracy progression, dan loss dynamics.
+
+### ⚠️ Overfitting Analysis
+
+![Overfitting Analysis](model_comparison/overfitting_analysis.png)
+
+> **Analisis overfitting** menunjukkan gap antara training dan validation accuracy untuk mengevaluasi generalisasi model.
+
+### 📊 Quick Comparison Table
+
+| Metrik                 | ConvNeXt-Tiny | Swin V2 Tiny | Winner            |
+| ---------------------- | ------------- | ------------ | ----------------- |
+| **Best Val Accuracy**  | 70.00%        | 71.43%       | 🏆 Swin V2        |
+| **Best F1 Score**      | 0.6500        | 0.6557       | 🏆 Swin V2        |
+| **Best Epoch**         | 7             | 13           | ConvNeXt (faster) |
+| **Training Stability** | Stable        | Stable       | Tie               |
+| **Parameters**         | 28M           | 28M          | Tie               |
 
 ---
 
@@ -365,6 +412,7 @@ python train_convnext.py
 ```
 
 **Output:**
+
 - Model checkpoint di `checkpoints/<timestamp>/`
 - Training metrics di `history_train.json`
 - Visualization plots (loss, accuracy, F1, etc.)
@@ -410,22 +458,26 @@ streamlit run app.py
 ### Application Features
 
 #### 📤 Upload Gambar
+
 - Supported format: JPG, JPEG, PNG
 - Max file size: Default (Streamlit limit ~200MB)
 - Single image upload
 
 #### 🔄 Automatic Preprocessing
+
 - Haar Cascade face detection
 - Automatic cropping & resizing
 - Side-by-side preview (original vs processed)
 - Status display (Crop Detected or Resize Only)
 
 #### ✅ Real-time Prediction
+
 - Instant inference menggunakan ConvNeXt-Tiny
 - Confidence percentage
 - Top-5 candidates
 
 #### 📊 Visualization
+
 - Confidence bar chart
 - Ranking table
 - Processing details
@@ -464,11 +516,13 @@ DISPLAY RESULTS
 ### UI Sections
 
 #### 📸 Sidebar
+
 - Model information (name, accuracy, input size)
 - Preprocessing pipeline explanation
 - Quick reference
 
 #### 📤 Main Section
+
 1. **Upload Area** - File uploader untuk JPG/PNG/JPEG
 2. **Processing Display** - Spinner saat preprocessing
 3. **Preview Section** - Original vs processed images side-by-side
@@ -479,6 +533,7 @@ DISPLAY RESULTS
 ### Tips untuk Hasil Terbaik
 
 ✅ **DO**:
+
 - Ambil foto wajah dengan pencahayaan cukup
 - Posisikan wajah langsung menghadap kamera
 - Pastikan hanya 1 orang di foto
@@ -486,6 +541,7 @@ DISPLAY RESULTS
 - Hindari menggunakan filter atau editing ekstrem
 
 ❌ **DON'T**:
+
 - Menggunakan foto terlalu jauh
 - Mengambil foto dengan pencahayaan gelap
 - Menggunakan foto blur atau noise tinggi
@@ -538,6 +594,7 @@ face-recognition-dl/
 ```
 
 **Penjelasan:**
+
 - 📁 **Folder**
 - 🔵 **Python Script (.py)**
 - 📄 **File (.txt, .json, .md)**
@@ -548,17 +605,18 @@ face-recognition-dl/
 
 ### System Requirements
 
-| Requirement | Minimum | Recommended |
-|-------------|---------|-------------|
-| **OS** | Windows/Linux/macOS | Windows/Linux |
-| **Python** | 3.8+ | 3.10+ |
-| **RAM** | 8GB | 16GB |
-| **GPU** | Optional | NVIDIA CUDA 11.8+ |
-| **Storage** | 5GB | 10GB |
+| Requirement | Minimum             | Recommended       |
+| ----------- | ------------------- | ----------------- |
+| **OS**      | Windows/Linux/macOS | Windows/Linux     |
+| **Python**  | 3.8+                | 3.10+             |
+| **RAM**     | 8GB                 | 16GB              |
+| **GPU**     | Optional            | NVIDIA CUDA 11.8+ |
+| **Storage** | 5GB                 | 10GB              |
 
 ### Python Dependencies
 
 **Core Libraries:**
+
 - `torch>=2.0.0` - Deep learning framework
 - `torchvision>=0.15.0` - Vision utilities
 - `timm>=0.9.0` - PyTorch Image Models
@@ -567,15 +625,18 @@ face-recognition-dl/
 - `numpy>=1.24.0` - Numerical computing
 
 **Web & UI:**
+
 - `streamlit>=1.28.0` - Web interface
 - `streamlit-option-menu>=0.3.0` - UI components
 
 **Data & Metrics:**
+
 - `scikit-learn>=1.3.0` - Metrics & utilities
 - `pandas>=2.0.0` - Data manipulation
 - `tqdm>=4.66.0` - Progress bars
 
 **Visualization:**
+
 - `matplotlib>=3.7.0` - Plotting
 - `seaborn>=0.12.0` - Statistical visualization
 
@@ -601,6 +662,7 @@ pip install torch torchvision timm opencv-python streamlit scikit-learn matplotl
 **Dataset**: 70 mahasiswa IF ITERA (Matakuliah Deep Learning)
 
 **Acknowledgments:**
+
 - 🙏 PyTorch Team - Deep learning framework
 - 🙏 timm Contributors - ConvNeXt implementations
 - 🙏 OpenCV Community - Computer vision utilities
